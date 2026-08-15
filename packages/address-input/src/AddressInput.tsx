@@ -1,8 +1,9 @@
-import { useId, useRef, useState, type ReactNode } from "react";
+import { useCallback, useId, useRef, useState, type ReactNode } from "react";
 import { AdminAreaSelect } from "./AdminAreaSelect.tsx";
 import { ConfirmMap } from "./ConfirmMap.tsx";
 import { Highlight } from "./Highlight.tsx";
 import {
+  IconBulb,
   IconCoordinates,
   IconCrosshair,
   IconMapPin,
@@ -57,6 +58,45 @@ export function AddressInput({
   const [coordsWarnings, setCoordsWarnings] = useState<string[]>([]);
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "failed">("loading");
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const fieldRef = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * Con el teclado abierto, el desplegable nacía tapado: en móvil el teclado
+   * ocupa media pantalla y el campo suele quedar en la mitad de abajo.
+   *
+   * Se abre hacia arriba cuando abajo no cabe y arriba hay más espacio. Se
+   * prefirió esto a desplazar la página: desplazar depende de que haya algo
+   * que desplazar (si la página termina justo ahí, el navegador ignora la
+   * orden — medido) y de adivinar cuánto tarda el teclado en aparecer. Esto
+   * se decide con lo que hay en pantalla en ese momento.
+   */
+  const [dropUp, setDropUp] = useState(false);
+  const [dropMaxHeight, setDropMaxHeight] = useState<number | null>(null);
+
+  /**
+   * Decide hacia dónde abrir y cuánto puede medir el desplegable con el
+   * espacio que hay en pantalla en ese momento.
+   *
+   * Limitar el alto es lo que garantiza que el pie —el tip y las salidas—
+   * quede siempre visible: la lista scrollea dentro y el pie no. Sin esto,
+   * con el teclado abierto el desplegable se extendía por debajo del borde
+   * y esas opciones quedaban inalcanzables.
+   */
+  const evaluarEspacio = useCallback(() => {
+    const campo = fieldRef.current;
+    if (!campo) return;
+    // visualViewport refleja el alto real con el teclado abierto;
+    // innerHeight no siempre lo hace.
+    const alto = window.visualViewport?.height ?? window.innerHeight;
+    const rect = campo.getBoundingClientRect();
+    const abajo = alto - rect.bottom - 8;
+    const arriba = rect.top - 8;
+    const haciaArriba = arriba > abajo + 40;
+    setDropUp(haciaArriba);
+    // Nunca menos de 150 px: por debajo de eso no cabría ni una sugerencia
+    // más el pie, y sería peor que dejarlo desbordar.
+    setDropMaxHeight(Math.max(150, Math.min(336, haciaArriba ? arriba : abajo)));
+  }, []);
 
   const {
     phase,
@@ -247,7 +287,7 @@ export function AddressInput({
           )}
 
           {modes.search && (
-            <div className="ari-field">
+            <div className="ari-field" ref={fieldRef}>
               <input
                 ref={inputRef}
                 type="text"
@@ -265,7 +305,12 @@ export function AddressInput({
                   setDropdownOpen(true);
                   setActiveIndex(-1);
                 }}
-                onFocus={() => setDropdownOpen(true)}
+                onFocus={() => {
+                  setDropdownOpen(true);
+                  evaluarEspacio();
+                  // El teclado tarda en aparecer: se vuelve a medir después.
+                  window.setTimeout(evaluarEspacio, 400);
+                }}
                 onBlur={() => {
                   // Con retraso: un tap en una sugerencia dispara blur antes
                   // que el click; pointerdown en la opción gana igual, esto
@@ -294,7 +339,10 @@ export function AddressInput({
                 </button>
               )}
               {showDropdown && (
-                <div className="ari-dropdown">
+                <div
+                  className={`ari-dropdown${dropUp ? " ari-dropdown-up" : ""}`}
+                  style={dropMaxHeight ? { maxHeight: dropMaxHeight } : undefined}
+                >
                   {suggestions.length === 0 && suggesting && (
                     // Esqueleto: ocupa el lugar donde van a aparecer las
                     // opciones. Da algo que mirar mientras se espera, que se
@@ -353,6 +401,15 @@ export function AddressInput({
                             : suggestions.length === 0 && suggested
                               ? texts.noSuggestions
                               : texts.forceSearchHint}
+                      </p>
+                      {/* Va antes de las acciones: es la corrección más
+                          probable, y las acciones son la salida si el tip no
+                          alcanza. */}
+                      <p className="ari-dropdown-tip">
+                        <span className="ari-action-icon">
+                          <IconBulb size={16} />
+                        </span>
+                        {texts.searchTip}
                       </p>
                       {dropdownActions.map((action, i) => {
                         const index = suggestions.length + i;

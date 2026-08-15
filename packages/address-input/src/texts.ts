@@ -6,6 +6,7 @@ export interface Texts {
   forceSearchHint: string;
   forceSearchButton: string;
   noneMatches: string;
+  searchTip: string;
   adminAreaPlaceholder: string;
   adminAreaRequiredHint: string;
   privacyHint: string;
@@ -60,6 +61,11 @@ export const DEFAULT_TEXTS: Texts = {
    */
   forceSearchButton: "Buscar la dirección tal como la escribí",
   noneMatches: "¿Ninguna coincide con lo que escribiste?",
+  // Sin la comuna, muchas calles de Santiago tienen homónimas en otras
+  // comunas y el geocoder devuelve la equivocada. Decirlo acá, donde la
+  // persona ya está mirando porque algo no le calzó, es más útil que en el
+  // texto de ayuda que nadie lee.
+  searchTip: "Agrega la comuna o región para afinar los resultados.",
   adminAreaPlaceholder: "Escribe y elige de la lista",
   adminAreaRequiredHint: "Elige primero la comuna para buscar tu dirección.",
   privacyHint:

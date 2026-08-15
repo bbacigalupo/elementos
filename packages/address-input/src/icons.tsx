@@ -80,3 +80,14 @@ export function IconX(props: IconProps) {
     </Svg>
   );
 }
+
+/** Ampolleta: sugerencia para mejorar los resultados. */
+export function IconBulb(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M9 18h6" />
+      <path d="M10 21h4" />
+      <path d="M12 3a6 6 0 0 0-3.6 10.8c.5.4.8 1 .9 1.6l.1.6h5.2l.1-.6c.1-.6.4-1.2.9-1.6A6 6 0 0 0 12 3z" />
+    </Svg>
+  );
+}

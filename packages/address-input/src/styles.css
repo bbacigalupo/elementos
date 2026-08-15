@@ -52,6 +52,9 @@
 
 .ari-field {
   position: relative;
+  /* Margen que respeta scrollIntoView al subir el campo: pegarlo al borde
+     exacto se ve como si se hubiera cortado la pregunta. */
+  scroll-margin-top: 0.75rem;
 }
 
 .ari-input {
@@ -128,6 +131,20 @@
   border-radius: var(--ari-radius);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   overflow: hidden;
+}
+
+/* Hacia arriba cuando el teclado no deja espacio abajo. El pie de acciones
+   queda arriba del todo para que siga siendo lo más lejano al pulgar
+   —evita tocarlo por error— y las sugerencias quedan junto al campo. */
+.ari-dropdown-up {
+  top: auto;
+  bottom: calc(100% + 4px);
+  flex-direction: column-reverse;
+}
+
+.ari-dropdown-up .ari-dropdown-actions {
+  border-top: 0;
+  border-bottom: 1px solid var(--ari-border);
 }
 
 .ari-suggestions {
@@ -594,4 +611,22 @@
   .ari-skeleton {
     animation: none;
   }
+}
+
+/* Tip dentro del pie del desplegable: se lee como consejo, no como acción,
+   para no competir con los botones que están debajo. */
+.ari-dropdown-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  margin: 0 0 0.125rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--ari-muted);
+}
+
+.ari-dropdown-tip .ari-action-icon {
+  color: var(--ari-accent);
+  margin-top: 0.05rem;
 }
