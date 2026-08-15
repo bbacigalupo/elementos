@@ -264,12 +264,6 @@
   font-size: 0.875rem;
 }
 
-.ari-force {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
 
 .ari-actions {
   display: flex;

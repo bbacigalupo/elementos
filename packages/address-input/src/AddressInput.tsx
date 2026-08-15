@@ -2,14 +2,7 @@ import { useCallback, useId, useRef, useState, type ReactNode } from "react";
 import { AdminAreaSelect } from "./AdminAreaSelect.tsx";
 import { ConfirmMap } from "./ConfirmMap.tsx";
 import { Highlight } from "./Highlight.tsx";
-import {
-  IconBulb,
-  IconCoordinates,
-  IconCrosshair,
-  IconMapPin,
-  IconSearch,
-  IconX,
-} from "./icons.tsx";
+import { IconBulb, IconCoordinates, IconCrosshair, IconMapPin, IconX } from "./icons.tsx";
 import type { MarkerConfig, TileConfig, TileThemeName } from "./map-config.ts";
 import { DEFAULT_TEXTS, type Texts } from "./texts.ts";
 import { useAddressCapture, type AddressCaptureConfig } from "./useAddressCapture.ts";
@@ -115,7 +108,6 @@ export function AddressInput({
     adminAreaRequired,
     adminAreaLabel,
     selectSuggestion,
-    forceSearch,
     pickOnMap,
     useGps,
     gpsAvailable,
@@ -163,13 +155,7 @@ export function AddressInput({
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     const count = navigableCount;
-    if (!showDropdown || count === 0) {
-      if (e.key === "Enter" && canForceSearch) {
-        e.preventDefault();
-        runForceSearch();
-      }
-      return;
-    }
+    if (!showDropdown || count === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIndex((i) => (i + 1) % count);
@@ -179,9 +165,11 @@ export function AddressInput({
     } else if (e.key === "Enter") {
       e.preventDefault();
       // El índice recorre primero las sugerencias y luego las acciones del
-      // pie, así el teclado llega a "Buscar de todas formas" y al mapa.
+      // pie, así el teclado también llega a "Marcar en el mapa". Sin nada
+      // resaltado, Enter toma la primera sugerencia, que es lo que espera
+      // quien escribió y le apareció justo lo que buscaba.
       if (activeIndex < 0) {
-        runForceSearch();
+        if (suggestions.length > 0) handleSelect(suggestions[0]);
       } else if (activeIndex < suggestions.length) {
         handleSelect(suggestions[activeIndex]);
       } else {
@@ -206,13 +194,6 @@ export function AddressInput({
     setCoordsWarnings([]);
   }
 
-  function runForceSearch() {
-    setDropdownOpen(false);
-    setActiveIndex(-1);
-    startConfirmingUi();
-    forceSearch();
-  }
-
   function runPickOnMap() {
     setDropdownOpen(false);
     setActiveIndex(-1);
@@ -226,14 +207,6 @@ export function AddressInput({
    * formas de capturar la dirección y el flujo queda sin salida visible.
    */
   const dropdownActions: Array<{ key: string; icon: ReactNode; label: string; run: () => void }> = [];
-  if (canForceSearch) {
-    dropdownActions.push({
-      key: "force",
-      icon: <IconSearch size={16} />,
-      label: texts.forceSearchButton,
-      run: runForceSearch,
-    });
-  }
   if (modes.map) {
     dropdownActions.push({
       key: "map",
@@ -437,26 +410,10 @@ export function AddressInput({
 
           {/* Con el desplegable abierto estas mismas salidas viven en su pie
               fijo; duplicarlas acá solo agregaría ruido. */}
-          {modes.search && !showDropdown && suggesting && <p className="ari-hint">{texts.searching}</p>}
+          {/* El aviso de "sin coincidencias" vive dentro del desplegable; acá
+              solo quedaría duplicado. */}
           {modes.search && !showDropdown && showNoResults && (
             <p className="ari-hint">{texts.noSuggestions}</p>
-          )}
-
-          {modes.search && !showDropdown && canForceSearch && (
-            <div className="ari-force">
-              <span className="ari-hint">{showNoneMatches ? texts.noneMatches : texts.forceSearchHint}</span>
-              <button
-                type="button"
-                className="ari-linkbtn"
-                disabled={phase === "resolving"}
-                onClick={runForceSearch}
-              >
-                <span className="ari-action-icon">
-                  <IconSearch size={16} />
-                </span>
-                {phase === "resolving" ? texts.resolving : texts.forceSearchButton}
-              </button>
-            </div>
           )}
 
           {errorText && <p className="ari-error">{errorText}</p>}

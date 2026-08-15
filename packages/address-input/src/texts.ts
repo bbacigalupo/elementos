@@ -4,7 +4,6 @@ export interface Texts {
   searching: string;
   noSuggestions: string;
   forceSearchHint: string;
-  forceSearchButton: string;
   noneMatches: string;
   searchTip: string;
   adminAreaPlaceholder: string;
@@ -52,14 +51,11 @@ export const DEFAULT_TEXTS: Texts = {
   searchPlaceholder: "Ej: Pedro de Valdivia 290, Providencia",
   searching: "Buscando sugerencias…",
   noSuggestions: "No encontramos coincidencias con lo que escribiste.",
+  // Encabeza el pie del desplegable. No lleva un botón de "buscar igual":
+  // esa acción usaba el mismo motor que las sugerencias y devolvía el mismo
+  // primer resultado, así que prometía una segunda oportunidad inexistente.
   forceSearchHint: "¿No aparece lo que buscas?",
-  /**
-   * "Buscar de todas formas" no comunicaba nada nuevo: la persona ya está
-   * buscando. Este texto nombra lo que la acción realmente hace distinto —
-   * buscar el texto completo tal como se escribió, en vez de las
-   * sugerencias parciales del autocompletado.
-   */
-  forceSearchButton: "Buscar la dirección tal como la escribí",
+
   noneMatches: "¿Ninguna coincide con lo que escribiste?",
   // Sin la comuna, muchas calles de Santiago tienen homónimas en otras
   // comunas y el geocoder devuelve la equivocada. Decirlo acá, donde la

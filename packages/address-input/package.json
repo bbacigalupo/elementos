@@ -1,6 +1,6 @@
 {
   "name": "@allride/address-input",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "Input reutilizable de captura de direcciones: autocompletado con fallback, pin en mapa, GPS y coordenadas manuales, siempre con confirmación visual.",
   "license": "UNLICENSED",
@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@allride/geo-core": "^0.7.0"
+    "@allride/geo-core": "^0.8.0"
   },
   "peerDependencies": {
     "leaflet": "^1.9.0",
