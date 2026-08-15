@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   assessSuggestions,
+  formatAddress,
   haversineMeters,
   parseCoordinates,
   precisionMeets,
@@ -245,17 +246,27 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
    * que están en Peñalolén, y la comuna es variable de análisis.
    */
   const applyDeclaredArea = useCallback(
-    (v: LocationValue): LocationValue =>
-      adminArea
-        ? {
-            ...v,
-            components: {
-              ...v.components,
-              commune: adminArea.name,
-              region: adminArea.parentName ?? v.components.region,
-            },
-          }
-        : v,
+    (v: LocationValue): LocationValue => {
+      if (!adminArea) return v;
+      const components = {
+        ...v.components,
+        commune: adminArea.name,
+        region: adminArea.parentName ?? v.components.region,
+      };
+      // El texto visible también se reescribe: corregir solo los componentes
+      // dejaba a la persona viendo "Santiago" después de haber declarado
+      // "Las Condes", con el dato guardado diciendo otra cosa que la pantalla.
+      const streetLine = [components.street, components.number].filter(Boolean).join(" ");
+      const firstPart = v.formatted.split(",")[0]?.trim() ?? "";
+      // Los POI ("Campus X, Diagonal Las Torres 2640, …") conservan su nombre.
+      const poiName = firstPart && firstPart !== streetLine ? firstPart : null;
+      const rebuilt = formatAddress(components, v.formatted);
+      return {
+        ...v,
+        components,
+        formatted: poiName && streetLine ? `${poiName}, ${rebuilt}` : rebuilt,
+      };
+    },
     [adminArea],
   );
 
