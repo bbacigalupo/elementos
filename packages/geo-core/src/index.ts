@@ -3,6 +3,8 @@ export * from "./coords.ts";
 export * from "./relevance.ts";
 export * from "./suggestions.ts";
 export * from "./fetch-retry.ts";
+export * from "./cache.ts";
+export * from "./circuit-breaker.ts";
 export * from "./providers/types.ts";
 export * from "./providers/index.ts";
 export * from "./client/index.ts";

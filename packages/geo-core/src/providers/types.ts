@@ -29,6 +29,12 @@ export interface GeoProvider {
     autocomplete: boolean;
     geocode: boolean;
     reverse: boolean;
+    /**
+     * ¿Se pueden almacenar sus resultados? Los proveedores OSM (ODbL) sí;
+     * Google restringe el cacheo por contrato. `withCache` lo respeta.
+     * Por defecto se asume que sí.
+     */
+    cacheable?: boolean;
   };
   autocomplete(query: string, bias: GeoBias, opts?: AutocompleteOptions): Promise<Suggestion[]>;
   geocode(query: string, bias: GeoBias, opts?: RequestOptions): Promise<GeocodeOutcome | null>;

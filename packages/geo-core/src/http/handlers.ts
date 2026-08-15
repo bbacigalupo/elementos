@@ -1,5 +1,6 @@
 import type { GeoBias } from "../types.ts";
 import type { GeoProvider } from "../providers/types.ts";
+import { CircuitOpenError } from "../circuit-breaker.ts";
 
 /**
  * Handlers HTTP portables del contrato de geocoding, en estándar web
@@ -18,10 +19,23 @@ import type { GeoProvider } from "../providers/types.ts";
 
 export interface GeoHandlersOptions {
   provider: GeoProvider;
-  /** Devuelve false para rechazar la request (429). Ver createMemoryRateLimit. */
-  rateLimit?: (req: Request) => boolean | Promise<boolean>;
-  /** Valor para Access-Control-Allow-Origin si el backend vive en otro origen. */
-  cors?: string;
+  /**
+   * Límite por cliente. Si se omite se aplica uno en memoria (120 req/min
+   * por IP): el endpoint es público por necesidad —el navegador lo llama—
+   * y dejarlo sin límite convierte cualquier despliegue en un proxy de
+   * geocoding gratis para terceros. Con varias instancias conviene pasar
+   * uno compartido (Redis, tabla en base de datos). `false` lo desactiva
+   * de forma explícita.
+   */
+  rateLimit?: ((req: Request) => boolean | Promise<boolean>) | false;
+  /**
+   * Orígenes autorizados cuando el backend vive en otro dominio. Se acepta
+   * una lista y se responde solo al origen que coincida.
+   *
+   * Evita a propósito recibir "*": con comodín cualquier sitio podría usar
+   * tu cuota de geocoding desde el navegador de sus visitantes.
+   */
+  cors?: string | string[];
 }
 
 export interface GeoHandlers {
@@ -63,30 +77,52 @@ function parseBias(params: URLSearchParams): GeoBias | null {
 }
 
 export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
-  const baseHeaders: Record<string, string> = { "Content-Type": "application/json" };
-  if (opts.cors) {
-    baseHeaders["Access-Control-Allow-Origin"] = opts.cors;
-    baseHeaders["Access-Control-Allow-Methods"] = "GET, OPTIONS";
+  const allowedOrigins = opts.cors
+    ? (Array.isArray(opts.cors) ? opts.cors : [opts.cors]).filter((o) => o !== "*")
+    : [];
+  if (opts.cors && allowedOrigins.length === 0) {
+    console.warn(
+      '[geo-core] Se ignoró cors: "*". Indica los orígenes concretos; con comodín cualquier sitio puede gastar tu cuota de geocoding.',
+    );
   }
 
-  function json(status: number, body: unknown): Response {
-    return new Response(JSON.stringify(body), { status, headers: baseHeaders });
+  // Protegido por defecto: ver la documentación de `rateLimit`.
+  const rateLimit = opts.rateLimit === false ? null : (opts.rateLimit ?? createMemoryRateLimit(120, 60));
+
+  function headersFor(req: Request): Record<string, string> {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const origin = req.headers.get("origin");
+    if (origin && allowedOrigins.includes(origin)) {
+      headers["Access-Control-Allow-Origin"] = origin;
+      headers["Access-Control-Allow-Methods"] = "GET, OPTIONS";
+      headers["Vary"] = "Origin";
+    }
+    return headers;
   }
 
   async function guard(
     req: Request,
-    fn: (params: URLSearchParams) => Promise<Response>,
+    fn: (params: URLSearchParams, json: (s: number, b: unknown) => Response) => Promise<Response>,
   ): Promise<Response> {
-    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: baseHeaders });
+    const headers = headersFor(req);
+    const json = (status: number, body: unknown) =>
+      new Response(JSON.stringify(body), { status, headers });
+
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers });
     if (req.method !== "GET") return json(405, { ok: false, error: "method_not_allowed" });
-    if (opts.rateLimit && !(await opts.rateLimit(req))) {
+    if (rateLimit && !(await rateLimit(req))) {
       return json(429, { ok: false, error: "rate_limited" });
     }
     try {
-      return await fn(new URL(req.url).searchParams);
+      return await fn(new URL(req.url).searchParams, json);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         return json(499, { ok: false, error: "aborted" });
+      }
+      if (err instanceof CircuitOpenError) {
+        // El proveedor está caído y el circuito abierto: se responde rápido
+        // y sin ruido en los registros, que para eso se abrió.
+        return json(503, { ok: false, error: "provider_unavailable" });
       }
       console.error("[geo-core] error del proveedor:", err);
       return json(502, { ok: false, error: "provider_error" });
@@ -94,7 +130,7 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
   }
 
   const autocomplete = (req: Request) =>
-    guard(req, async (params) => {
+    guard(req, async (params, json) => {
       const q = params.get("q")?.trim() ?? "";
       const bias = parseBias(params);
       if (q.length < 2 || q.length > 200 || !bias) {
@@ -110,7 +146,7 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
     });
 
   const geocode = (req: Request) =>
-    guard(req, async (params) => {
+    guard(req, async (params, json) => {
       const q = params.get("q")?.trim() ?? "";
       const bias = parseBias(params);
       if (q.length < 2 || q.length > 200 || !bias) {
@@ -121,7 +157,7 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
     });
 
   const reverse = (req: Request) =>
-    guard(req, async (params) => {
+    guard(req, async (params, json) => {
       const lat = parseFloat(params.get("lat") ?? "");
       const lng = parseFloat(params.get("lng") ?? "");
       if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
@@ -137,7 +173,12 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
     if (pathname.endsWith("/autocomplete")) return autocomplete(req);
     if (pathname.endsWith("/geocode")) return geocode(req);
     if (pathname.endsWith("/reverse")) return reverse(req);
-    return Promise.resolve(json(404, { ok: false, error: "not_found" }));
+    return Promise.resolve(
+      new Response(JSON.stringify({ ok: false, error: "not_found" }), {
+        status: 404,
+        headers: headersFor(req),
+      }),
+    );
   };
 
   return { autocomplete, geocode, reverse, handle };

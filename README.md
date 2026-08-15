@@ -213,6 +213,58 @@ autocompletado libre, como antes.
 pedido, y lo marca en las métricas (`belowMinPrecision`) para filtrar en el análisis.
 `privacyHint` muestra el aviso para capturar domicilios particulares.
 
+### Protección contra abuso y consumo excesivo
+
+Las defensas vienen puestas por defecto: quien integra el elemento no debería tener que
+acordarse de activarlas para que su despliegue esté sano.
+
+**En el cliente** (menos llamadas por persona):
+
+- Debounce de 300 ms y mínimo de 3 caracteres: no se consulta en cada tecla.
+- Cancelación de la petición anterior al escribir la siguiente (`AbortController`).
+- Las sugerencias traen el `LocationValue` completo: elegir una no gasta otra llamada.
+
+**En el servidor** (menos llamadas en total, y protección del endpoint):
+
+- **Caché compartida con fusión de peticiones**: la misma dirección se resuelve una vez
+  para todas las personas, y veinte consultas idénticas simultáneas se convierten en una
+  sola llamada al proveedor. Es lo que más reduce costo y cuota, y vuelve inofensivo el
+  abuso más simple —repetir la misma consulta en bucle—. Respeta
+  `capabilities.cacheable`: los proveedores OSM permiten almacenar resultados (ODbL),
+  Google no.
+- **Cortacircuitos**: tras varios fallos seguidos deja de llamar al proveedor por un rato.
+  Sin él, una caída se amplifica por los reintentos y arriesga bloqueos por abuso en los
+  tiers gratuitos.
+- **Rate limiting activo por omisión** (120 req/min por IP, en memoria). El endpoint es
+  público por necesidad —lo llama el navegador— y sin límite cualquier despliegue sería un
+  proxy de geocoding gratis para terceros. Se reemplaza por uno compartido pasando
+  `rateLimit`, o se desactiva explícitamente con `false`.
+- **CORS con lista de orígenes**: se responde solo al origen que coincida. `"*"` se ignora
+  con una advertencia, porque con comodín cualquier sitio podría gastar tu cuota.
+- **Validación de entrada**: largo de la consulta (2–200), país en formato ISO, coordenadas
+  dentro de rango, `limit` acotado a 1–10 y nombres de división administrativa hasta 120
+  caracteres.
+- **Las API keys nunca llegan al navegador**: todo pasa por el proxy propio.
+
+Ajustes:
+
+```ts
+createProvider({
+  name: "locationiq",
+  apiKey: process.env.LOCATIONIQ_KEY!,
+  cache: { ttlMs: 12 * 60 * 60 * 1000, maxEntries: 5000 }, // o `false`
+  circuitBreaker: { failureThreshold: 5, resetMs: 30_000 }, // o `false`
+});
+
+createGeoHandlers({ provider, cors: ["https://encuestas.allrideapp.com"] });
+```
+
+**Límite conocido**: la caché y el rate limiter viven en memoria del proceso. En entornos
+serverless (Vercel) cada instancia tiene los suyos, así que protegen menos de lo que
+protegerían con un almacén compartido. Para volumen alto conviene pasar un `rateLimit`
+respaldado en base de datos —como hace la encuesta de estudio-movilidad— y, llegado el
+caso, una caché compartida.
+
 ### Versionado y consumo
 
 Los paquetes se publican versionados; los consumidores fijan la versión y adoptan los
