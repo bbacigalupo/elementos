@@ -7,8 +7,12 @@
 .ari-root {
   --ari-accent: #29a8e0;
   --ari-accent-contrast: #ffffff;
-  --ari-fg: #1a1a2e;
-  --ari-muted: #71717a;
+  /* Contraste sobre blanco: 12.6:1 el texto, 7.5:1 el secundario. El gris
+     zinc que había antes (#71717a) dejaba los sublabels al borde de lo
+     legible en pantallas con brillo bajo. */
+  --ari-fg: #333333;
+  --ari-muted: #555555;
+  --ari-heading: var(--ari-fg);
   --ari-border: #d4d4d8;
   --ari-surface: #ffffff;
   --ari-surface-soft: #f4f4f5;
@@ -17,10 +21,14 @@
   --ari-warn-fg: #92400e;
   --ari-radius: 12px;
   --ari-map-height: 22rem;
+  /* Por defecto hereda la tipografía de la app que lo integra. */
+  --ari-font: inherit;
+  --ari-font-heading: var(--ari-font);
 
   color: var(--ari-fg);
+  font-family: var(--ari-font);
   font-size: 1rem;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .ari-stack {
@@ -31,7 +39,9 @@
 
 .ari-label {
   margin: 0 0 0.25rem;
-  font-weight: 600;
+  font-family: var(--ari-font-heading);
+  font-weight: 700;
+  color: var(--ari-heading);
 }
 
 .ari-help {
@@ -47,6 +57,8 @@
 .ari-input {
   width: 100%;
   box-sizing: border-box;
+  font-family: var(--ari-font);
+  color: var(--ari-fg);
   border: 1px solid var(--ari-border);
   border-radius: var(--ari-radius);
   background: var(--ari-surface);
@@ -55,6 +67,11 @@
   /* ≥16px: evita el auto-zoom de iOS al enfocar */
   font-size: 1rem;
   outline: none;
+}
+
+.ari-input::placeholder {
+  color: var(--ari-muted);
+  opacity: 1;
 }
 
 .ari-input:focus {
@@ -137,7 +154,7 @@
 .ari-dropdown-hint {
   margin: 0 0 0.125rem;
   padding: 0 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--ari-muted);
 }
 
@@ -200,17 +217,18 @@
 }
 
 .ari-suggestion-label {
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--ari-fg);
 }
 
 .ari-suggestion-sub {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--ari-muted);
 }
 
 .ari-hint {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--ari-muted);
 }
 
@@ -271,7 +289,8 @@
   border-radius: 999px;
   background: var(--ari-accent);
   color: var(--ari-accent-contrast);
-  font: inherit;
+  font-family: var(--ari-font-heading);
+  font-size: 0.9375rem;
   font-weight: 700;
   padding: 0.75rem 1.25rem;
   min-height: 48px;
@@ -462,7 +481,8 @@
 .ari-sublabel {
   display: block;
   margin-bottom: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--ari-muted);
 }
 

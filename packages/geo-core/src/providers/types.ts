@@ -2,6 +2,14 @@ import type { GeoBias, GeocodeOutcome, LocationValue, Suggestion } from "../type
 
 export interface RequestOptions {
   signal?: AbortSignal;
+  /**
+   * División administrativa declarada por la persona. Viaja como dato
+   * estructurado, no concatenada al texto: los geocoders resuelven mucho
+   * mejor "calle + número" cuando la comuna va en su propio campo, y
+   * pegarla al query degrada los resultados (LocationIQ devolvía otra calle
+   * con el mismo número).
+   */
+  adminArea?: { name: string; parentName?: string };
 }
 
 export interface AutocompleteOptions extends RequestOptions {

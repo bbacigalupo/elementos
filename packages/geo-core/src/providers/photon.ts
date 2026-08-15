@@ -117,14 +117,21 @@ export function createPhotonProvider(config: PhotonConfig = {}): GeoProvider {
   const base = (config.baseUrl ?? "https://photon.komoot.io").replace(/\/$/, "");
   const headers = { "User-Agent": config.userAgent ?? DEFAULT_USER_AGENT };
 
+  /** Photon no acepta campos estructurados: la división administrativa se
+   * agrega al texto, que es lo único que entiende. */
+  function withArea(query: string, area?: { name: string; parentName?: string }): string {
+    return area ? [query, area.name, area.parentName].filter(Boolean).join(", ") : query;
+  }
+
   async function search(
     query: string,
     bias: GeoBias,
     limit: number,
     signal?: AbortSignal,
+    area?: { name: string; parentName?: string },
   ): Promise<PhotonFeature[]> {
     const url = new URL(`${base}/api/`);
-    url.searchParams.set("q", query);
+    url.searchParams.set("q", withArea(query, area));
     // Pedimos de más porque el filtro por país es post-respuesta.
     url.searchParams.set("limit", String(Math.min(limit * 3, 18)));
     if (bias.center) {
@@ -156,7 +163,7 @@ export function createPhotonProvider(config: PhotonConfig = {}): GeoProvider {
       const limit = opts?.limit ?? 5;
       // Se piden de más porque OSM repite lugares (nodo y vía del mismo
       // sitio, homónimos en la misma comuna) y la deduplicación recorta.
-      const features = await search(query, bias, limit * 2, opts?.signal);
+      const features = await search(query, bias, limit * 2, opts?.signal, opts?.adminArea);
       const mapped = features.map((f, i) => {
         const value = { ...toLocationValue(f), source: "autocomplete" as const };
         const { label, sublabel } = suggestionLabel(f);
@@ -166,7 +173,7 @@ export function createPhotonProvider(config: PhotonConfig = {}): GeoProvider {
     },
 
     async geocode(query, bias, opts?: RequestOptions): Promise<GeocodeOutcome | null> {
-      const features = await search(query, bias, 1, opts?.signal);
+      const features = await search(query, bias, 1, opts?.signal, opts?.adminArea);
       if (features.length === 0) return null;
       const value = toLocationValue(features[0]);
       return { value, matchedLevel: precisionToMatchedLevel(value.precision) };

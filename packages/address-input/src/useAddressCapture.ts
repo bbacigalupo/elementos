@@ -228,9 +228,14 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     [bias, adminArea],
   );
 
-  const withAdminArea = useCallback(
-    (text: string) =>
-      adminArea ? [text, adminArea.name, adminArea.parentName].filter(Boolean).join(", ") : text,
+  /**
+   * La comuna viaja como dato estructurado hasta el proveedor, no pegada al
+   * texto: LocationIQ y Nominatim la usan como campo propio y resuelven
+   * calle+número mucho mejor así. Concatenarla degradaba los resultados
+   * (devolvía la comuna misma como primera sugerencia).
+   */
+  const areaOption = useMemo(
+    () => (adminArea ? { name: adminArea.name, parentName: adminArea.parentName } : undefined),
     [adminArea],
   );
 
@@ -279,8 +284,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       const controller = new AbortController();
       abortRef.current = controller;
       try {
-        const results = await client.autocomplete(withAdminArea(q), effectiveBias, {
+        const results = await client.autocomplete(q, effectiveBias, {
           limit: autocompleteLimit,
+          adminArea: areaOption,
           signal: controller.signal,
         });
         if (controller.signal.aborted) return;
@@ -302,7 +308,7 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     }, debounceMs);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, phase, modes.search, minQueryLength, debounceMs, autocompleteLimit, effectiveBias, withAdminArea, adminAreaRequired, adminArea]);
+  }, [query, phase, modes.search, minQueryLength, debounceMs, autocompleteLimit, effectiveBias, areaOption, adminAreaRequired, adminArea]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -351,7 +357,7 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     setPhase("resolving");
     void (async () => {
       try {
-        const outcome = await client.geocode(withAdminArea(q), effectiveBias);
+        const outcome = await client.geocode(q, effectiveBias, { adminArea: areaOption });
         if (outcome) {
           toConfirming(applyDeclaredArea({ ...outcome.value, source: "search" }), outcome.matchedLevel);
         } else {
@@ -363,7 +369,7 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
         setPhase("idle");
       }
     })();
-  }, [query, minQueryLength, markStarted, client, effectiveBias, withAdminArea, applyDeclaredArea, toConfirming]);
+  }, [query, minQueryLength, markStarted, client, effectiveBias, areaOption, applyDeclaredArea, toConfirming]);
 
   // ---------- reverse geocode al mover el pin ----------
   const reverseAbortRef = useRef<AbortController | null>(null);

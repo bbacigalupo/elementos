@@ -26,6 +26,12 @@ interface HttpEnvelope<T> {
   value?: LocationValue | null;
 }
 
+function areaParams(url: URL, opts?: { adminArea?: { name: string; parentName?: string } }) {
+  if (!opts?.adminArea) return;
+  url.searchParams.set("area", opts.adminArea.name);
+  if (opts.adminArea.parentName) url.searchParams.set("areaParent", opts.adminArea.parentName);
+}
+
 function biasParams(url: URL, bias: GeoBias) {
   url.searchParams.set("country", bias.country);
   if (bias.center) {
@@ -54,6 +60,7 @@ export function httpClient(baseUrl: string): GeoClient {
       url.searchParams.set("q", query);
       if (opts?.limit) url.searchParams.set("limit", String(opts.limit));
       biasParams(url, bias);
+      areaParams(url, opts);
       const body = await call<never>(url, opts?.signal);
       return body.suggestions ?? [];
     },
@@ -62,6 +69,7 @@ export function httpClient(baseUrl: string): GeoClient {
       const url = new URL(`${base}/geocode`, globalThis.location?.href);
       url.searchParams.set("q", query);
       biasParams(url, bias);
+      areaParams(url, opts);
       const body = await call<GeocodeOutcome | null>(url, opts?.signal);
       return body.outcome ?? null;
     },

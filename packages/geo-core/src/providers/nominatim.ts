@@ -71,9 +71,15 @@ export function createNominatimProvider(config: NominatimConfig = {}): GeoProvid
     },
 
     async geocode(query, bias, opts?: RequestOptions): Promise<GeocodeOutcome | null> {
+      // Con comuna declarada, campos estructurados: resuelven calle+número
+      // mucho mejor que pegar todo en un texto libre.
+      const area = opts?.adminArea;
+      const queryParams: Record<string, string> = area
+        ? { street: query, city: area.name, ...(area.parentName ? { state: area.parentName } : {}) }
+        : { q: query };
       const results = await osmFetch(
         "search",
-        { q: query, limit: "1", ...biasParams(bias) },
+        { ...queryParams, limit: "1", ...biasParams(bias) },
         opts?.signal,
       );
       if (results.length === 0) return null;

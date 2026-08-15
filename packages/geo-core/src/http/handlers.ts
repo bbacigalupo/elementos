@@ -32,6 +32,14 @@ export interface GeoHandlers {
   handle: (req: Request) => Promise<Response>;
 }
 
+/** División administrativa declarada, si viene en la petición. */
+function parseAdminArea(params: URLSearchParams): { name: string; parentName?: string } | undefined {
+  const name = params.get("area")?.trim();
+  if (!name || name.length > 120) return undefined;
+  const parentName = params.get("areaParent")?.trim();
+  return { name, parentName: parentName && parentName.length <= 120 ? parentName : undefined };
+}
+
 function parseBias(params: URLSearchParams): GeoBias | null {
   const country = params.get("country");
   if (!country || !/^[a-zA-Z]{2}$/.test(country)) return null;
@@ -94,7 +102,10 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
       }
       const limitRaw = parseInt(params.get("limit") ?? "5", 10);
       const limit = Math.min(Math.max(Number.isFinite(limitRaw) ? limitRaw : 5, 1), 10);
-      const suggestions = await opts.provider.autocomplete(q, bias, { limit });
+      const suggestions = await opts.provider.autocomplete(q, bias, {
+        limit,
+        adminArea: parseAdminArea(params),
+      });
       return json(200, { ok: true, suggestions });
     });
 
@@ -105,7 +116,7 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
       if (q.length < 2 || q.length > 200 || !bias) {
         return json(400, { ok: false, error: "bad_request" });
       }
-      const outcome = await opts.provider.geocode(q, bias);
+      const outcome = await opts.provider.geocode(q, bias, { adminArea: parseAdminArea(params) });
       return json(200, { ok: true, outcome });
     });
 
