@@ -1,6 +1,6 @@
 {
   "name": "@allride/geo-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Núcleo de geolocalización: tipos, parser de coordenadas, proveedores de geocoding intercambiables y handlers HTTP portables. Sin dependencias, sin UI.",
   "license": "UNLICENSED",
@@ -17,7 +17,9 @@
   },
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

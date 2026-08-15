@@ -442,10 +442,19 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     if (anchor) runReverse(anchor.lat, anchor.lng);
   }, [markStarted, suggestions, config.anchor, adminArea, bias.center, bias.country, toConfirming, runReverse]);
 
-  const gpsAvailable =
-    typeof navigator !== "undefined" &&
-    "geolocation" in navigator &&
-    (typeof window === "undefined" || window.isSecureContext);
+  /**
+   * Se resuelve DESPUÉS de montar, no durante el render.
+   *
+   * En el servidor no existe `navigator`, así que calcularlo en el render
+   * daba false en el HTML del servidor y true en el cliente: el botón de
+   * GPS aparecía solo en el cliente y React abortaba la hidratación de todo
+   * el árbol ("server rendered HTML didn't match"). Partiendo en false en
+   * ambos lados, el primer render coincide y el botón aparece al montar.
+   */
+  const [gpsAvailable, setGpsAvailable] = useState(false);
+  useEffect(() => {
+    setGpsAvailable("geolocation" in navigator && window.isSecureContext);
+  }, []);
 
   const useGps = useCallback(() => {
     markStarted();

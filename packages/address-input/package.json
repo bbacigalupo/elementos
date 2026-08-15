@@ -1,6 +1,6 @@
 {
   "name": "@allride/address-input",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Input reutilizable de captura de direcciones: autocompletado con fallback, pin en mapa, GPS y coordenadas manuales, siempre con confirmación visual.",
   "license": "UNLICENSED",
@@ -14,15 +14,19 @@
   },
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
-  "files": ["dist"],
-  "sideEffects": ["*.css"],
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node ../../scripts/copy-assets.mjs address-input styles.css",
     "prepack": "npm run build",
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@allride/geo-core": "^0.1.0"
+    "@allride/geo-core": "^0.1.1"
   },
   "peerDependencies": {
     "leaflet": "^1.9.0",
