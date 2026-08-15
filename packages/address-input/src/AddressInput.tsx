@@ -203,10 +203,17 @@ export function AddressInput({
     });
   }
 
-  // El desplegable también aparece sin sugerencias (mientras busca o si no
-  // hubo resultados): ahí sus acciones son la única salida.
+  /**
+   * El desplegable aparece cuando hay algo que mostrar: sugerencias, la
+   * espera de una búsqueda en curso, o el resultado vacío de una búsqueda
+   * ya hecha. Con el campo vacío no se abre: decir "no encontramos
+   * coincidencias" antes de que la persona escriba nada no tiene sentido —
+   * las otras formas de capturar ya están visibles debajo del campo.
+   */
   const showDropdown =
-    dropdownOpen && phase === "idle" && (suggestions.length > 0 || dropdownActions.length > 0);
+    dropdownOpen &&
+    phase === "idle" &&
+    (suggestions.length > 0 || suggesting || (suggested && canForceSearch));
   const navigableCount = suggestions.length + dropdownActions.length;
   const showNoResults =
     phase === "idle" && suggested && !suggesting && suggestions.length === 0 && canForceSearch;
@@ -343,7 +350,7 @@ export function AddressInput({
                           ? texts.searching
                           : showNoneMatches
                             ? texts.noneMatches
-                            : suggestions.length === 0
+                            : suggestions.length === 0 && suggested
                               ? texts.noSuggestions
                               : texts.forceSearchHint}
                       </p>

@@ -478,6 +478,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       const prev = candidateRef.current;
       if (prev) setCandidate({ ...prev, lat, lng, source: "pin" });
       setFarPending(false);
+      // Mover el pin a mano es justamente lo que el aviso de GPS sugería
+      // hacer: mantenerlo visible después sería ruido.
+      setErrorCode(null);
 
       // Ajustes de pocos metros no cambian la dirección: preguntar de nuevo
       // gastaría cuota para recibir exactamente lo mismo.
@@ -596,9 +599,14 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       return;
     }
     setGpsBusy(true);
+    // Se limpia el aviso anterior: si el intento pasado falló por tiempo y
+    // este funciona, el mensaje viejo quedaría en pantalla contradiciendo
+    // lo que la persona acaba de ver.
+    setErrorCode(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGpsBusy(false);
+        setErrorCode(null);
         usedGpsRef.current = true;
         const { latitude, longitude } = pos.coords;
         setRecenterRequest({ lat: latitude, lng: longitude, nonce: Date.now() });

@@ -48,7 +48,7 @@ export interface Texts {
 }
 
 export const DEFAULT_TEXTS: Texts = {
-  searchPlaceholder: "Escribe una dirección o lugar…",
+  searchPlaceholder: "Ej: Pedro de Valdivia 290, Providencia",
   searching: "Buscando sugerencias…",
   noSuggestions: "No encontramos coincidencias con lo que escribiste.",
   forceSearchHint: "¿No aparece lo que buscas?",
