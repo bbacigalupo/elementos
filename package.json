@@ -1,0 +1,21 @@
+{
+  "name": "elementos",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Elementos reutilizables de AllRide — monorepo de componentes compartidos entre interfaces",
+  "workspaces": [
+    "packages/*",
+    "demo"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w elementos-demo",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build -w @allride/geo-core && npm run build -w @allride/address-input"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.7",
+    "vitest": "^3"
+  }
+}

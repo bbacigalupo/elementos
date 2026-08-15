@@ -1,0 +1,491 @@
+/*
+ * Estilos de <AddressInput> (prefijo .ari-).
+ * Personalización por variables CSS — redefine en tu app:
+ *   .ari-root { --ari-accent: #tu-color; }
+ */
+
+.ari-root {
+  --ari-accent: #29a8e0;
+  --ari-accent-contrast: #ffffff;
+  --ari-fg: #1a1a2e;
+  --ari-muted: #71717a;
+  --ari-border: #d4d4d8;
+  --ari-surface: #ffffff;
+  --ari-surface-soft: #f4f4f5;
+  --ari-danger: #dc2626;
+  --ari-warn-bg: #fffbeb;
+  --ari-warn-fg: #92400e;
+  --ari-radius: 12px;
+  --ari-map-height: 22rem;
+
+  color: var(--ari-fg);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.ari-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ari-label {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.ari-help {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--ari-muted);
+}
+
+.ari-field {
+  position: relative;
+}
+
+.ari-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ari-border);
+  border-radius: var(--ari-radius);
+  background: var(--ari-surface);
+  color: var(--ari-fg);
+  padding: 0.75rem 0.875rem;
+  /* ≥16px: evita el auto-zoom de iOS al enfocar */
+  font-size: 1rem;
+  outline: none;
+}
+
+.ari-input:focus {
+  border-color: var(--ari-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ari-accent) 20%, transparent);
+}
+
+.ari-input:disabled {
+  opacity: 0.6;
+}
+
+/* Espacio para que el texto no pase por debajo de la "x". */
+.ari-input-clearable {
+  padding-right: 2.75rem;
+}
+
+.ari-clear {
+  position: absolute;
+  right: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Área táctil cómoda aunque el ícono sea chico. */
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ari-muted);
+  cursor: pointer;
+}
+
+.ari-clear:hover {
+  background: var(--ari-surface-soft);
+  color: var(--ari-fg);
+}
+
+.ari-dropdown {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  display: flex;
+  flex-direction: column;
+  /* El alto total lo limita el desplegable, no la lista: así el pie de
+     acciones siempre cabe en pantalla y la lista scrollea dentro. */
+  max-height: 21rem;
+  background: var(--ari-surface);
+  border: 1px solid var(--ari-border);
+  border-radius: var(--ari-radius);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.ari-suggestions {
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ari-dropdown-actions {
+  /* No scrollea con la lista: es la salida cuando ninguna sugerencia sirve.
+     Tipografía y alto menores que las sugerencias — son la alternativa, no
+     el camino principal. */
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0.375rem 0.25rem 0.25rem;
+  border-top: 1px solid var(--ari-border);
+  background: var(--ari-surface-soft);
+}
+
+.ari-dropdown-hint {
+  margin: 0 0 0.125rem;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  color: var(--ari-muted);
+}
+
+.ari-dropdown-action {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.375rem 0.5rem;
+  border-radius: calc(var(--ari-radius) - 4px);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ari-accent);
+}
+
+.ari-dropdown-action:hover,
+.ari-dropdown-action.ari-suggestion-active {
+  background: color-mix(in srgb, var(--ari-accent) 12%, transparent);
+}
+
+.ari-action-icon {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+/* Coincidencias con lo escrito. El color no va solo: el peso lo acompaña
+   para que se distinga sin depender de percibir el celeste. */
+.ari-match {
+  background: transparent;
+  color: var(--ari-accent);
+  font-weight: 600;
+}
+
+.ari-suggestion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  /* alto táctil ≥44px */
+  padding: 0.7rem 0.75rem;
+  border-radius: calc(var(--ari-radius) - 4px);
+  font: inherit;
+  color: inherit;
+}
+
+.ari-suggestion:hover,
+.ari-suggestion-active {
+  background: var(--ari-surface-soft);
+}
+
+.ari-suggestion-label {
+  font-weight: 500;
+}
+
+.ari-suggestion-sub {
+  font-size: 0.8125rem;
+  color: var(--ari-muted);
+}
+
+.ari-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ari-muted);
+}
+
+.ari-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ari-danger);
+}
+
+.ari-warn {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: calc(var(--ari-radius) - 4px);
+  background: var(--ari-warn-bg);
+  color: var(--ari-warn-fg);
+  font-size: 0.875rem;
+}
+
+.ari-force {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ari-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1.25rem;
+}
+
+.ari-linkbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 0;
+  background: transparent;
+  padding: 0.375rem 0;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ari-accent);
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.ari-linkbtn:hover {
+  text-decoration: underline;
+}
+
+.ari-linkbtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ari-btn {
+  border: 0;
+  border-radius: 999px;
+  background: var(--ari-accent);
+  color: var(--ari-accent-contrast);
+  font: inherit;
+  font-weight: 700;
+  padding: 0.75rem 1.25rem;
+  min-height: 48px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.ari-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.ari-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ari-btn-secondary {
+  background: transparent;
+  color: var(--ari-fg);
+  border: 1px solid var(--ari-border);
+  font-weight: 600;
+}
+
+.ari-coords {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--ari-border);
+  border-radius: var(--ari-radius);
+}
+
+.ari-mapwrap {
+  position: relative;
+  height: var(--ari-map-height);
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--ari-radius);
+  background: var(--ari-surface-soft);
+}
+
+/* El contenedor Leaflet no debe taparse con los avisos del componente */
+.ari-mapwrap .leaflet-container {
+  height: 100%;
+  width: 100%;
+  font: inherit;
+}
+
+/* --- marcador --- */
+
+.ari-pin-wrap {
+  /* divIcon trae fondo y borde por defecto; el SVG se basta solo. */
+  background: transparent;
+  border: 0;
+}
+
+.ari-pin {
+  display: block;
+  /* Sombra suave bajo el pin, además de la elipse en el suelo. */
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.25));
+}
+
+.ari-pin-shadow {
+  /* La elipse ancla el pin al suelo: sin ella el marcador "flota" y cuesta
+     saber qué punto exacto está señalando. */
+  transform-origin: 17px 43px;
+}
+
+/* Caída al aparecer: hace evidente dónde quedó el pin tras una búsqueda o
+   un recentrado, en vez de que aparezca de la nada. */
+.ari-pin-animate {
+  animation: ari-pin-drop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  transform-origin: 50% 100%;
+}
+
+@keyframes ari-pin-drop {
+  0% {
+    transform: translateY(-10px) scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ari-pin-animate {
+    animation: none;
+  }
+}
+
+/* Sobre el mapa: z-index por encima de los panes de Leaflet (400-700). */
+.ari-map-locate {
+  position: absolute;
+  z-index: 600;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 40px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ari-border);
+  border-radius: 999px;
+  background: var(--ari-surface);
+  color: var(--ari-fg);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.ari-map-locate:hover:not(:disabled) {
+  background: var(--ari-surface-soft);
+}
+
+.ari-map-locate:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.ari-map-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--ari-surface-soft) 95%, transparent);
+  color: var(--ari-muted);
+  font-size: 0.875rem;
+}
+
+.ari-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.ari-formatted {
+  margin: 0;
+  font-weight: 500;
+}
+
+.ari-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ari-muted);
+}
+
+.ari-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ari-row .ari-btn {
+  flex: 1;
+}
+
+.ari-confirmed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ari-confirmed .ari-linkbtn {
+  min-height: auto;
+}
+
+/* --- división administrativa declarada y avisos --- */
+
+.ari-sublabel {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--ari-muted);
+}
+
+.ari-chosen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 0.5rem 0.625rem 0.875rem;
+  border: 1px solid var(--ari-border);
+  border-radius: var(--ari-radius);
+  background: var(--ari-surface-soft);
+  font-size: 0.9375rem;
+}
+
+.ari-chosen-parent {
+  color: var(--ari-muted);
+}
+
+.ari-clear-inline {
+  position: static;
+  transform: none;
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+
+/* El aviso de privacidad va antes de pedir el dato, no después: sirve para
+   decidir cuánto compartir, no para lamentarlo. */
+.ari-privacy {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: calc(var(--ari-radius) - 4px);
+  background: var(--ari-surface-soft);
+  color: var(--ari-fg);
+  font-size: 0.8125rem;
+}
