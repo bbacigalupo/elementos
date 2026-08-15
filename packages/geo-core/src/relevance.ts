@@ -1,4 +1,4 @@
-import type { Suggestion } from "./types.ts";
+import type { AddressComponents, Suggestion } from "./types.ts";
 
 /**
  * Relevancia de sugerencias respecto de lo que la persona escribió.
@@ -65,4 +65,37 @@ export function assessSuggestions(query: string, suggestions: Suggestion[]): Mat
   }
 
   return "strong";
+}
+
+/**
+ * ¿El punto encontrado es consistente con la división administrativa que
+ * declaró la persona?
+ *
+ * Hay que distinguir dos situaciones que se ven parecidas:
+ *
+ * - El geocoder es **impreciso**: para una dirección de Peñalolén, OSM
+ *   devuelve `commune: "Santiago"` y deja "Peñalolén" en el barrio. Acá lo
+ *   declarado es mejor dato y debe prevalecer.
+ * - El punto está **en otra comuna**: se declaró Providencia y el pin cayó
+ *   en Las Condes. Acá pisar el nombre produciría una dirección que no
+ *   existe ("Alicante 937, Providencia"), y hay que avisar en vez de
+ *   corregir en silencio.
+ *
+ * El criterio: si el nombre declarado aparece en cualquier parte de lo que
+ * devolvió el geocoder, es el primer caso. Si no aparece en ninguna, es el
+ * segundo.
+ */
+export function adminAreaMatches(
+  value: { components: AddressComponents; formatted: string },
+  area: { name: string },
+): boolean {
+  const declared = normalizeTokens(area.name);
+  if (declared.length === 0) return true;
+  const c = value.components;
+  const haystack = normalizeTokens(
+    [c.commune, c.city, c.sublocality, c.region, value.formatted].filter(Boolean).join(" "),
+  );
+  // Todos los tokens del nombre declarado deben aparecer: "Las Condes"
+  // no calza con "Condes de Foo".
+  return declared.every((token) => haystack.some((h) => h.startsWith(token)));
 }

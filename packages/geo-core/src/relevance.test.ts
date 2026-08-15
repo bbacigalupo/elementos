@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessSuggestions, normalizeTokens, suggestionCoverage } from "./relevance.ts";
+import { adminAreaMatches, assessSuggestions, normalizeTokens, suggestionCoverage } from "./relevance.ts";
 import type { Suggestion } from "./types.ts";
 
 function sug(label: string, sublabel: string): Suggestion {
@@ -82,5 +82,42 @@ describe("assessSuggestions", () => {
       sug("Las Raíces", "Santiago, Región Metropolitana de Santiago"),
     );
     expect(c).toBe(0.5);
+  });
+});
+
+describe("adminAreaMatches", () => {
+  const value = (components: Partial<Suggestion["value"]["components"]>, formatted = "") => ({
+    formatted,
+    components: {
+      street: null, number: null, sublocality: null, commune: null,
+      city: null, region: null, postalCode: null, country: "CL",
+      ...components,
+    },
+  });
+
+  it("geocoder impreciso: declara Peñalolén y OSM dice Santiago pero deja el barrio", () => {
+    // Caso real de Photon para una dirección de Peñalolén.
+    const v = value({ commune: "Santiago", sublocality: "Peñalolén" }, "Las Raíces, Santiago");
+    expect(adminAreaMatches(v, { name: "Peñalolén" })).toBe(true);
+  });
+
+  it("punto en otra comuna: declara Providencia y el pin está en Las Condes", () => {
+    const v = value({ commune: "Las Condes", city: "Santiago" }, "Alicante 937, Las Condes, Santiago");
+    expect(adminAreaMatches(v, { name: "Providencia" })).toBe(false);
+  });
+
+  it("coincidencia directa", () => {
+    const v = value({ commune: "Providencia" }, "Villaseca 290, Providencia");
+    expect(adminAreaMatches(v, { name: "Providencia" })).toBe(true);
+  });
+
+  it("ignora tildes y mayúsculas", () => {
+    const v = value({ commune: "PEÑALOLÉN" }, "");
+    expect(adminAreaMatches(v, { name: "peñalolen" })).toBe(true);
+  });
+
+  it("no confunde nombres que comparten una palabra", () => {
+    const v = value({ commune: "Condes de Algo" }, "");
+    expect(adminAreaMatches(v, { name: "Las Condes" })).toBe(false);
   });
 });

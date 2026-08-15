@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  adminAreaMatches,
   assessSuggestions,
   formatAddress,
   haversineMeters,
@@ -131,6 +132,8 @@ export interface AddressCapture {
   distanceFromBiasKm: number | null;
   /** true si el candidato actual no alcanza la precisión mínima pedida. */
   belowMinPrecision: boolean;
+  /** true si el punto no cae en la división administrativa declarada. */
+  adminAreaMismatch: boolean;
   confirm: () => void;
   edit: () => void;
   /** Código del último error para que la UI elija el texto. */
@@ -248,6 +251,11 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
   const applyDeclaredArea = useCallback(
     (v: LocationValue): LocationValue => {
       if (!adminArea) return v;
+      // Si el punto está en otra división administrativa, la etiqueta debe
+      // describir dónde está el pin de verdad: pisarla produciría una
+      // dirección inexistente ("Alicante 937, Providencia"). La UI avisa y
+      // la persona corrige el pin o la comuna.
+      if (!adminAreaMatches(v, adminArea)) return v;
       const components = {
         ...v.components,
         commune: adminArea.name,
@@ -565,6 +573,12 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     return haversineMeters(candidate, bias.center) / 1000;
   }, [candidate, bias.center]);
 
+  /** El punto confirmado quedaría fuera de la división declarada. */
+  const adminAreaMismatch = useMemo(
+    () => (candidate && adminArea ? !adminAreaMatches(candidate, adminArea) : false),
+    [candidate, adminArea],
+  );
+
   const belowMinPrecision = useMemo(
     () => (candidate && config.minPrecision ? !precisionMeets(candidate.precision, config.minPrecision) : false),
     [candidate, config.minPrecision],
@@ -599,8 +613,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       mapFailed: mapFailedRef.current,
       belowMinPrecision,
       adminAreaDeclared: adminArea !== null,
+      adminAreaMismatch,
     });
-  }, [distanceFromBiasKm, maxDistanceKm, farPending, matchedLevel, belowMinPrecision, adminArea, config]);
+  }, [distanceFromBiasKm, maxDistanceKm, farPending, matchedLevel, belowMinPrecision, adminAreaMismatch, adminArea, config]);
 
   const edit = useCallback(() => {
     setValue(null);
@@ -652,6 +667,7 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     farPending,
     distanceFromBiasKm,
     belowMinPrecision,
+    adminAreaMismatch,
     confirm,
     edit,
     errorCode,

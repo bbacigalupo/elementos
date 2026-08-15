@@ -10,6 +10,7 @@ export interface Texts {
   adminAreaRequiredHint: string;
   privacyHint: string;
   belowMinPrecision: string;
+  adminAreaMismatch: string;
   clearInput: string;
   centerOnMe: string;
   centeringOnMe: string;
@@ -65,6 +66,8 @@ export const DEFAULT_TEXTS: Texts = {
     "Si prefieres no dar tu dirección exacta, puedes indicar una esquina o un punto cercano.",
   belowMinPrecision:
     "El punto quedó a nivel de zona. Si puedes, acércalo a la dirección exacta antes de confirmar.",
+  adminAreaMismatch:
+    "El punto no está en la comuna que elegiste. Mueve el pin al lugar correcto, o vuelve y cambia la comuna.",
   clearInput: "Borrar lo escrito",
   centerOnMe: "Centrar en mi ubicación",
   centeringOnMe: "Ubicando…",

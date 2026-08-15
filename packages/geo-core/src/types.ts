@@ -125,6 +125,12 @@ export interface CaptureMetrics {
   belowMinPrecision: boolean;
   /** true si la división administrativa la declaró la persona, no el geocoder. */
   adminAreaDeclared: boolean;
+  /**
+   * true si el punto confirmado no cae en la división declarada. No impide
+   * confirmar, pero marca la respuesta: la comuna suele ser variable de
+   * análisis y una discrepancia acá merece revisarse.
+   */
+  adminAreaMismatch: boolean;
 }
 
 // ---------- utilidades geométricas ----------

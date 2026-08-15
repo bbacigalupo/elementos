@@ -91,6 +91,7 @@ export function AddressInput({
     farPending,
     distanceFromBiasKm,
     belowMinPrecision,
+    adminAreaMismatch,
     confirm,
     edit,
     errorCode,
@@ -463,6 +464,7 @@ export function AddressInput({
         <div className="ari-stack">
           {matchedLevel === "zone" && <p className="ari-warn">{texts.matchedZone}</p>}
           {matchedLevel === "street" && <p className="ari-warn">{texts.matchedStreet}</p>}
+          {adminAreaMismatch && <p className="ari-warn">{texts.adminAreaMismatch}</p>}
           {belowMinPrecision && matchedLevel !== "zone" && (
             <p className="ari-warn">{texts.belowMinPrecision}</p>
           )}
