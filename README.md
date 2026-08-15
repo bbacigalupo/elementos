@@ -190,6 +190,43 @@ sobreescribible con `userAgent`). No es cortesía: el endpoint `reverse` de Phot
 503 a toda petición sin él y `fetch` de Node no manda ninguno, así que sin esto el reverse
 geocoding falla siempre desde el servidor. Nominatim además lo exige en sus TOS.
 
+### División administrativa declarada (comuna)
+
+Opcional, por despliegue. Cuando el dato tiene que ser limpio para análisis, se pasa un
+catálogo y la persona elige antes de escribir la dirección:
+
+```tsx
+<AddressInput
+  adminAreas={{ options: comunas, label: "Comuna", required: true }}
+  minPrecision="street"
+  privacyHint
+  …
+/>
+```
+
+La división elegida acota la búsqueda y **prevalece sobre lo que parsee el geocoder**: los
+datos OSM en Chile devuelven `commune: "Santiago"` para direcciones que están en Peñalolén,
+y esa variable suele ser clave para el análisis. Sin `adminAreas` el elemento funciona con
+autocompletado libre, como antes.
+
+`minPrecision` avisa —nunca bloquea— cuando el punto confirmado queda por debajo del nivel
+pedido, y lo marca en las métricas (`belowMinPrecision`) para filtrar en el análisis.
+`privacyHint` muestra el aviso para capturar domicilios particulares.
+
+### Versionado y consumo
+
+Los paquetes se publican versionados; los consumidores fijan la versión y adoptan los
+cambios cuando lo deciden — un ajuste al elemento no altera una encuesta en producción sin
+que alguien lo apruebe.
+
+```bash
+npm run build     # compila ambos paquetes a dist/ (JS + tipos)
+npm pack -w @allride/geo-core -w @allride/address-input
+```
+
+El playground consume el **código fuente** vía alias de Vite, así se itera sin recompilar;
+`dist/` es solo lo que viaja a los consumidores.
+
 ### Desarrollo
 
 ```bash
