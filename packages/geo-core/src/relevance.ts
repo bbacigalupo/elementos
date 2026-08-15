@@ -99,3 +99,19 @@ export function adminAreaMatches(
   // no calza con "Condes de Foo".
   return declared.every((token) => haystack.some((h) => h.startsWith(token)));
 }
+
+/**
+ * ¿Esta sugerencia sigue siendo compatible con lo que hay escrito ahora?
+ *
+ * Sirve para el filtrado local mientras llega la respuesta del servidor: al
+ * agregar una letra, las opciones que ya no calzan desaparecen al instante
+ * y las que sí quedan visibles, en vez de esperar el viaje completo.
+ */
+export function suggestionMatchesQuery(query: string, suggestion: Suggestion): boolean {
+  const tokens = normalizeTokens(query);
+  if (tokens.length === 0) return true;
+  const texto = normalizeTokens(
+    `${suggestion.label} ${suggestion.sublabel} ${suggestion.value.formatted}`,
+  );
+  return tokens.every((t) => texto.some((s) => s.startsWith(t)));
+}

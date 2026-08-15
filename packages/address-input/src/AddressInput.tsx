@@ -65,6 +65,7 @@ export function AddressInput({
     setQuery,
     suggestions,
     suggesting,
+    suggestionsProvisional,
     suggested,
     matchQuality,
     canForceSearch,
@@ -266,6 +267,7 @@ export function AddressInput({
                 }}
                 onKeyDown={handleKeyDown}
               />
+              {suggesting && <span className="ari-progress" aria-hidden="true" />}
               {query.length > 0 && phase !== "resolving" && (
                 <button
                   type="button"
@@ -286,8 +288,25 @@ export function AddressInput({
               )}
               {showDropdown && (
                 <div className="ari-dropdown">
+                  {suggestions.length === 0 && suggesting && (
+                    // Esqueleto: ocupa el lugar donde van a aparecer las
+                    // opciones. Da algo que mirar mientras se espera, que se
+                    // percibe más corto que una línea de texto inmóvil.
+                    <ul className="ari-suggestions" aria-hidden="true">
+                      {[0, 1, 2].map((i) => (
+                        <li key={i} className="ari-skeleton-row">
+                          <span className="ari-skeleton ari-skeleton-label" />
+                          <span className="ari-skeleton ari-skeleton-sub" />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {suggestions.length > 0 && (
-                    <ul id={listboxId} role="listbox" className="ari-suggestions">
+                    <ul
+                      id={listboxId}
+                      role="listbox"
+                      className={`ari-suggestions${suggestionsProvisional ? " ari-suggestions-provisional" : ""}`}
+                    >
                       {suggestions.map((s, i) => (
                         <li key={s.id} role="option" aria-selected={i === activeIndex}>
                           <button

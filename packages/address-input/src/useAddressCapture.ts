@@ -3,6 +3,7 @@ import {
   adminAreaMatches,
   assessSuggestions,
   formatAddress,
+  suggestionMatchesQuery,
   haversineMeters,
   parseCoordinates,
   precisionMeets,
@@ -39,7 +40,12 @@ export interface AddressCaptureConfig {
   client: GeoClient;
   bias: GeoBias;
   modes?: Partial<CaptureModes>;
-  /** ms de espera tras la última tecla antes de pedir sugerencias. */
+  /**
+   * ms de espera tras la última tecla antes de pedir sugerencias. Con el
+   * filtrado local y el esqueleto, la espera se percibe bastante menor que
+   * el número: la lista reacciona al instante aunque el resultado
+   * definitivo llegue después.
+   */
   debounceMs?: number;
   /**
    * Caracteres mínimos antes de buscar. 5 por defecto: con tres o cuatro
@@ -47,6 +53,13 @@ export interface AddressCaptureConfig {
    * gasta cuota igual.
    */
   minQueryLength?: number;
+  /**
+   * Intervalo mínimo entre búsquedas reales. El debounce espera a que la
+   * persona haga una pausa, pero quien teclea lento hace una pausa por
+   * letra: sin este tope, cada letra sería una llamada. Siempre se busca
+   * con el último texto escrito, nunca con uno viejo.
+   */
+  minSearchIntervalMs?: number;
   /**
    * Metros que debe moverse el pin para volver a preguntar la dirección.
    * Por debajo de eso la respuesta sería la misma, así que no se pregunta.
@@ -105,6 +118,12 @@ export interface AddressCapture {
   suggestions: Suggestion[];
   /** true mientras hay una petición de sugerencias en vuelo. */
   suggesting: boolean;
+  /**
+   * true cuando lo que se muestra es el resultado anterior filtrado en
+   * local, a la espera del definitivo. La UI debe indicarlo para que nadie
+   * elija algo que está por cambiar.
+   */
+  suggestionsProvisional: boolean;
   /** true si ya se pidieron sugerencias para el query actual (permite
    * distinguir "sin resultados" de "aún no busca"). */
   suggested: boolean;
@@ -192,8 +211,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
   const {
     client,
     bias,
-    debounceMs = 300,
+    debounceMs = 600,
     minQueryLength = 5,
+    minSearchIntervalMs = 900,
     minReverseMeters = 20,
     reverseDebounceMs = 400,
     autocompleteLimit = 5,
@@ -294,6 +314,7 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
 
   // ---------- autocompletado con debounce y cancelación ----------
   const abortRef = useRef<AbortController | null>(null);
+  const lastSearchAtRef = useRef(0);
   useEffect(() => {
     if (phase !== "idle" || !modes.search) return;
     if (adminAreaRequired && !adminArea) {
@@ -312,7 +333,14 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       return;
     }
     setSuggesting(true);
+    // Se respeta el intervalo mínimo desde la última búsqueda real: si la
+    // anterior fue hace poco, se espera lo que falte y se busca con el
+    // texto que haya en ese momento (que es este, porque el efecto se
+    // reinicia con cada cambio).
+    const desdeUltima = Date.now() - lastSearchAtRef.current;
+    const espera = Math.max(debounceMs, minSearchIntervalMs - desdeUltima);
     const timer = setTimeout(async () => {
+      lastSearchAtRef.current = Date.now();
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -338,10 +366,10 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
         setSuggesting(false);
         setMatchQuality("weak");
       }
-    }, debounceMs);
+    }, espera);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, phase, modes.search, minQueryLength, debounceMs, autocompleteLimit, effectiveBias, areaOption, adminAreaRequired, adminArea]);
+  }, [query, phase, modes.search, minQueryLength, debounceMs, minSearchIntervalMs, autocompleteLimit, effectiveBias, areaOption, adminAreaRequired, adminArea]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -673,6 +701,24 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     mapFailedRef.current = true;
   }, []);
 
+  /**
+   * Mientras llega la respuesta, se muestran las opciones anteriores que
+   * siguen calzando con lo escrito: agregar una letra estrecha la lista al
+   * instante en vez de dejarla congelada. Si el filtro no deja ninguna, se
+   * conservan todas —una lista que se vacía y vuelve se ve peor que una
+   * lista que espera.
+   */
+  const { visibleSuggestions, suggestionsProvisional } = useMemo(() => {
+    if (!suggesting || suggestions.length === 0) {
+      return { visibleSuggestions: suggestions, suggestionsProvisional: false };
+    }
+    const filtradas = suggestions.filter((s) => suggestionMatchesQuery(query, s));
+    return {
+      visibleSuggestions: filtradas.length > 0 ? filtradas : suggestions,
+      suggestionsProvisional: true,
+    };
+  }, [suggesting, suggestions, query]);
+
   const canForceSearch =
     query.trim().length >= minQueryLength && (!adminAreaRequired || adminArea !== null);
 
@@ -681,8 +727,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     modes,
     query,
     setQuery,
-    suggestions,
+    suggestions: visibleSuggestions,
     suggesting,
+    suggestionsProvisional,
     suggested,
     matchQuality,
     canForceSearch,
