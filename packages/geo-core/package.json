@@ -1,6 +1,6 @@
 {
   "name": "@allride/geo-core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "Núcleo de geolocalización: tipos, parser de coordenadas, proveedores de geocoding intercambiables y handlers HTTP portables. Sin dependencias, sin UI.",
   "license": "UNLICENSED",

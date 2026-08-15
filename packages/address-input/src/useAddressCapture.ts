@@ -41,7 +41,19 @@ export interface AddressCaptureConfig {
   modes?: Partial<CaptureModes>;
   /** ms de espera tras la última tecla antes de pedir sugerencias. */
   debounceMs?: number;
+  /**
+   * Caracteres mínimos antes de buscar. 5 por defecto: con tres o cuatro
+   * letras casi ningún resultado sirve para una dirección, y cada intento
+   * gasta cuota igual.
+   */
   minQueryLength?: number;
+  /**
+   * Metros que debe moverse el pin para volver a preguntar la dirección.
+   * Por debajo de eso la respuesta sería la misma, así que no se pregunta.
+   */
+  minReverseMeters?: number;
+  /** ms de espera tras el último movimiento del pin antes de preguntar. */
+  reverseDebounceMs?: number;
   autocompleteLimit?: number;
   /** Si el punto confirmado queda a más de esto del centro del bias, se pide re-confirmar. */
   maxDistanceKm?: number;
@@ -181,7 +193,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
     client,
     bias,
     debounceMs = 300,
-    minQueryLength = 3,
+    minQueryLength = 5,
+    minReverseMeters = 20,
+    reverseDebounceMs = 400,
     autocompleteLimit = 5,
     maxDistanceKm = 150,
   } = config;
@@ -350,6 +364,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
 
   // ---------- transición a confirmación ----------
   const toConfirming = useCallback((v: LocationValue, level: MatchedLevel | null) => {
+    // La sugerencia ya trae dirección resuelta para este punto: cuenta como
+    // "ya preguntado" y evita una consulta si el pin se mueve apenas.
+    lastReversedRef.current = v.formatted ? { lat: v.lat, lng: v.lng } : null;
     setCandidate(v);
     setMatchedLevel(level);
     initialPinRef.current = { lat: v.lat, lng: v.lng };
@@ -392,6 +409,9 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
 
   // ---------- reverse geocode al mover el pin ----------
   const reverseAbortRef = useRef<AbortController | null>(null);
+  /** Último punto para el que ya se resolvió una dirección. */
+  const lastReversedRef = useRef<{ lat: number; lng: number } | null>(null);
+  const reverseTimerRef = useRef<number | null>(null);
   const runReverse = useCallback(
     (lat: number, lng: number) => {
       reverseAbortRef.current?.abort();
@@ -402,6 +422,7 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
         try {
           const result = await client.reverse(lat, lng, { lang: bias.lang, signal: controller.signal });
           if (controller.signal.aborted) return;
+          lastReversedRef.current = { lat, lng };
           const prev = candidateRef.current;
           if (result && prev) {
             setCandidate(applyDeclaredArea({ ...result, lat, lng, source: "pin" }));
@@ -429,9 +450,30 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       const prev = candidateRef.current;
       if (prev) setCandidate({ ...prev, lat, lng, source: "pin" });
       setFarPending(false);
-      runReverse(lat, lng);
+
+      // Ajustes de pocos metros no cambian la dirección: preguntar de nuevo
+      // gastaría cuota para recibir exactamente lo mismo.
+      const last = lastReversedRef.current;
+      if (last && haversineMeters({ lat, lng }, last) < minReverseMeters) return;
+
+      // Quien acomoda el pin suele tocar varias veces seguidas; solo importa
+      // dónde quedó. Se marca ocupado de inmediato para que no se pueda
+      // confirmar mientras la dirección todavía no corresponde al pin.
+      if (reverseTimerRef.current !== null) window.clearTimeout(reverseTimerRef.current);
+      setReverseBusy(true);
+      reverseTimerRef.current = window.setTimeout(() => {
+        reverseTimerRef.current = null;
+        runReverse(lat, lng);
+      }, reverseDebounceMs);
     },
-    [runReverse],
+    [runReverse, minReverseMeters, reverseDebounceMs],
+  );
+
+  useEffect(
+    () => () => {
+      if (reverseTimerRef.current !== null) window.clearTimeout(reverseTimerRef.current);
+    },
+    [],
   );
 
   // ---------- otros caminos de entrada ----------

@@ -108,49 +108,77 @@ export function withCache(provider: GeoProvider, options: GeoCacheOptions = {}):
   } = options;
 
   const cache = new LruCache<unknown>(maxEntries, ttlMs);
-  const inflight = new Map<string, Promise<unknown>>();
+
+  interface EnVuelo {
+    promise: Promise<unknown>;
+    controller: AbortController;
+    /** Cuántos esperan todavía este resultado. */
+    esperando: number;
+  }
+  const inflight = new Map<string, EnVuelo>();
 
   /**
-   * La petición compartida no recibe el `signal` de quien la pidió: si el
-   * primero cancela, los demás perderían un resultado que ya venía en
-   * camino. Cancelar solo ahorra ancho de banda; acá el resultado además
-   * llena la caché, así que dejarlo terminar es lo correcto.
+   * La petición compartida se cancela solo cuando **todos** los que la
+   * esperaban se fueron. Cancelar en cuanto se va el primero mataría el
+   * resultado de los demás; no cancelar nunca haría pagar cuota por
+   * respuestas que ya nadie va a ver.
    */
-  async function resolve<T>(key: string, run: () => Promise<T>): Promise<T> {
+  function resolve<T>(key: string, run: (signal: AbortSignal) => Promise<T>, signal?: AbortSignal): Promise<T> {
     const cached = cache.get(key);
-    if (cached !== undefined) return cached as T;
+    if (cached !== undefined) return Promise.resolve(cached as T);
 
-    const pending = inflight.get(key);
-    if (pending) return pending as Promise<T>;
+    let entry = inflight.get(key);
+    if (!entry) {
+      const controller = new AbortController();
+      const nueva: EnVuelo = { controller, esperando: 0, promise: Promise.resolve() };
+      nueva.promise = run(controller.signal)
+        .then((result) => {
+          // Solo se guardan respuestas útiles: un "no encontrado" puede ser
+          // un fallo transitorio y no conviene fijarlo 24 horas.
+          if (result !== null && !(Array.isArray(result) && result.length === 0)) {
+            cache.set(key, result);
+          }
+          return result;
+        })
+        .finally(() => inflight.delete(key));
+      inflight.set(key, nueva);
+      entry = nueva;
+    }
 
-    const promise = run()
-      .then((result) => {
-        // Solo se guardan respuestas útiles: un "no encontrado" puede ser un
-        // fallo transitorio del proveedor y no conviene fijarlo 24 horas.
-        if (result !== null && !(Array.isArray(result) && result.length === 0)) {
-          cache.set(key, result);
-        }
-        return result;
-      })
-      .finally(() => inflight.delete(key));
+    entry.esperando += 1;
+    const actual = entry;
 
-    inflight.set(key, promise);
-    return promise;
+    if (signal) {
+      const alCancelar = () => {
+        actual.esperando -= 1;
+        if (actual.esperando <= 0) actual.controller.abort();
+      };
+      if (signal.aborted) alCancelar();
+      else signal.addEventListener("abort", alCancelar, { once: true });
+      return (actual.promise as Promise<T>).finally(() =>
+        signal.removeEventListener("abort", alCancelar),
+      );
+    }
+    return actual.promise as Promise<T>;
   }
 
   return {
     ...provider,
     autocomplete(query, bias, opts?: AutocompleteOptions) {
       const key = `ac|${provider.name}|${normalizeQuery(query)}|${biasKey(bias)}|${areaKey(opts)}|${opts?.limit ?? 5}`;
-      return resolve(key, () => provider.autocomplete(query, bias, opts));
+      return resolve(key, (signal) => provider.autocomplete(query, bias, { ...opts, signal }), opts?.signal);
     },
     geocode(query, bias, opts?: RequestOptions) {
       const key = `gc|${provider.name}|${normalizeQuery(query)}|${biasKey(bias)}|${areaKey(opts)}`;
-      return resolve(key, () => provider.geocode(query, bias, opts));
+      return resolve(key, (signal) => provider.geocode(query, bias, { ...opts, signal }), opts?.signal);
     },
     async reverse(lat, lng, opts) {
       const key = `rv|${provider.name}|${lat.toFixed(reversePrecision)},${lng.toFixed(reversePrecision)}|${opts?.lang ?? ""}`;
-      const value = await resolve<LocationValue | null>(key, () => provider.reverse(lat, lng, opts));
+      const value = await resolve<LocationValue | null>(
+        key,
+        (signal) => provider.reverse(lat, lng, { ...opts, signal }),
+        opts?.signal,
+      );
       // La clave está redondeada: el punto devuelto debe ser el que se pidió,
       // no el del vecino que llenó la caché.
       return value ? { ...value, lat, lng } : null;

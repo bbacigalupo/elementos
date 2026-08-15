@@ -141,6 +141,10 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
       const suggestions = await opts.provider.autocomplete(q, bias, {
         limit,
         adminArea: parseAdminArea(params),
+        // Si quien preguntó ya se fue (siguió escribiendo, cerró la
+        // pestaña), no tiene sentido seguir gastando cuota por un resultado
+        // que nadie va a ver.
+        signal: req.signal,
       });
       return json(200, { ok: true, suggestions });
     });
@@ -152,7 +156,10 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
       if (q.length < 2 || q.length > 200 || !bias) {
         return json(400, { ok: false, error: "bad_request" });
       }
-      const outcome = await opts.provider.geocode(q, bias, { adminArea: parseAdminArea(params) });
+      const outcome = await opts.provider.geocode(q, bias, {
+        adminArea: parseAdminArea(params),
+        signal: req.signal,
+      });
       return json(200, { ok: true, outcome });
     });
 
@@ -164,7 +171,7 @@ export function createGeoHandlers(opts: GeoHandlersOptions): GeoHandlers {
         return json(400, { ok: false, error: "bad_request" });
       }
       const lang = params.get("lang") ?? undefined;
-      const value = await opts.provider.reverse(lat, lng, { lang });
+      const value = await opts.provider.reverse(lat, lng, { lang, signal: req.signal });
       return json(200, { ok: true, value });
     });
 
