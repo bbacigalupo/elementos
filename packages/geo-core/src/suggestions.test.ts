@@ -59,8 +59,8 @@ describe("dedupeSuggestions", () => {
 
   it("garantiza ids únicos aunque el proveedor repita placeId", () => {
     const out = dedupeSuggestions([
-      sug("N:1", "Las Raíces", "Peñalolén, RM", -33.48, -70.54),
-      sug("N:1", "Las Raíces", "La Reina, RM", -33.45, -70.55),
+      sug("N:1", "Av. Grecia", "Peñalolén, RM", -33.48, -70.54),
+      sug("N:1", "Av. Grecia", "La Reina, RM", -33.45, -70.55),
     ]);
     expect(out).toHaveLength(2);
     expect(new Set(out.map((s) => s.id)).size).toBe(2);

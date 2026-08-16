@@ -1,6 +1,6 @@
 import type { GeoBias, GeocodeOutcome, LocationValue, Suggestion } from "../types.ts";
 import { dedupeSuggestions } from "../suggestions.ts";
-import { DEFAULT_USER_AGENT, fetchWithRetry } from "../fetch-retry.ts";
+import { DEFAULT_USER_AGENT, fetchWithRetry, throwIfRateLimited, throwIfUnauthorized } from "../fetch-retry.ts";
 import { osmToLocationValue, osmToOutcome, viewboxFor, type OsmResult } from "./osm.ts";
 import type { AutocompleteOptions, GeoProvider, RequestOptions } from "./types.ts";
 
@@ -12,7 +12,7 @@ import type { AutocompleteOptions, GeoProvider, RequestOptions } from "./types.t
  *
  * Las sugerencias salen de `/search`, NO del endpoint `/autocomplete`. Ese
  * está pensado para nombres de lugares y resuelve mal las direcciones con
- * número, que es el caso central acá: con "Alicante 937" devolvía "937,
+ * número, que es el caso central acá: con "Moneda 1025" devolvía "937,
  * Málaga" —otra calle con el mismo número— y con la comuna pegada al texto
  * devolvía la comuna misma como primera opción. `/search` resuelve ambos
  * casos bien. Comprobado contra la API real.
@@ -48,6 +48,8 @@ export function createLocationIqProvider(config: LocationIqConfig): GeoProvider 
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
     const res = await fetchWithRetry(url, { headers, signal }, { signal });
     if (res.status === 404) return []; // LocationIQ responde 404 en "sin resultados"
+    throwIfRateLimited("LocationIQ", res);
+    throwIfUnauthorized("LocationIQ", res);
     if (!res.ok) throw new Error(`LocationIQ respondió ${res.status}`);
     const body = await res.json();
     return Array.isArray(body) ? body : [body];

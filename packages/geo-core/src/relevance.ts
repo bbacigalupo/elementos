@@ -4,8 +4,8 @@ import type { AddressComponents, Suggestion } from "./types.ts";
  * Relevancia de sugerencias respecto de lo que la persona escribió.
  *
  * Sirve para que la UI detecte el caso "hay sugerencias pero ninguna es lo
- * que busco" (ej: escribió "las raíces 1700 peñalolén" y el geocoder ofrece
- * "Las Raíces" sin número o "Las Perdices 1700" en otra calle) y ofrezca
+ * que busco" (ej: escribió "av. grecia 3000 ñuñoa" y el geocoder ofrece
+ * "Av. Grecia" sin número o "Av. Grecia Norte 3000" en otra calle) y ofrezca
  * explícitamente la búsqueda forzada o marcar en el mapa.
  */
 
@@ -20,18 +20,24 @@ export function normalizeTokens(text: string): string[] {
 }
 
 /**
- * Fracción de tokens del query cubiertos por la sugerencia (label + sublabel
- * + formatted). Match por prefijo, porque el último token suele estar a
- * medio escribir ("peñalol" debe calzar con "Peñalolén").
+ * Fracción de tokens del query cubiertos por un texto. Match por prefijo,
+ * porque el último token suele estar a medio escribir ("peñalol" debe
+ * calzar con "Peñalolén").
  */
-export function suggestionCoverage(query: string, suggestion: Suggestion): number {
+export function textCoverage(query: string, text: string): number {
   const qTokens = normalizeTokens(query);
   if (qTokens.length === 0) return 1;
-  const sTokens = normalizeTokens(
+  const tTokens = normalizeTokens(text);
+  const matched = qTokens.filter((q) => tTokens.some((t) => t.startsWith(q)));
+  return matched.length / qTokens.length;
+}
+
+/** Cobertura contra el texto visible de una sugerencia (label + sublabel + formatted). */
+export function suggestionCoverage(query: string, suggestion: Suggestion): number {
+  return textCoverage(
+    query,
     `${suggestion.label} ${suggestion.sublabel} ${suggestion.value.formatted}`,
   );
-  const matched = qTokens.filter((q) => sTokens.some((s) => s.startsWith(q)));
-  return matched.length / qTokens.length;
 }
 
 export type MatchAssessment = "strong" | "weak";
@@ -78,7 +84,7 @@ export function assessSuggestions(query: string, suggestions: Suggestion[]): Mat
  *   declarado es mejor dato y debe prevalecer.
  * - El punto está **en otra comuna**: se declaró Providencia y el pin cayó
  *   en Las Condes. Acá pisar el nombre produciría una dirección que no
- *   existe ("Alicante 937, Providencia"), y hay que avisar en vez de
+ *   existe ("Moneda 1025, Providencia"), y hay que avisar en vez de
  *   corregir en silencio.
  *
  * El criterio: si el nombre declarado aparece en cualquier parte de lo que

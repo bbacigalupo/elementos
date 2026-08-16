@@ -29,15 +29,15 @@ function proveedorFalso(overrides: Partial<GeoProvider> = {}) {
     capabilities: { autocomplete: true, geocode: true, reverse: true },
     async autocomplete() {
       llamadas.autocomplete += 1;
-      return [{ id: "1", label: "Alicante 937", sublabel: "Las Condes", value: valorFalso("Alicante 937") }];
+      return [{ id: "1", label: "Moneda 1025", sublabel: "Las Condes", value: valorFalso("Moneda 1025") }];
     },
     async geocode() {
       llamadas.geocode += 1;
-      return { value: valorFalso("Alicante 937"), matchedLevel: "address" as const };
+      return { value: valorFalso("Moneda 1025"), matchedLevel: "address" as const };
     },
     async reverse() {
       llamadas.reverse += 1;
-      return valorFalso("Alicante 937");
+      return valorFalso("Moneda 1025");
     },
     ...overrides,
   };
@@ -48,16 +48,16 @@ describe("withCache", () => {
   it("la misma consulta no vuelve a llamar al proveedor", async () => {
     const { provider, llamadas } = proveedorFalso();
     const conCache = withCache(provider);
-    await conCache.autocomplete("Alicante 937", bias);
-    await conCache.autocomplete("Alicante 937", bias);
-    await conCache.autocomplete("  ALICANTE   937 ", bias); // mismo texto, otro formato
+    await conCache.autocomplete("Moneda 1025", bias);
+    await conCache.autocomplete("Moneda 1025", bias);
+    await conCache.autocomplete("  MONEDA   1025 ", bias); // mismo texto, otro formato
     expect(llamadas.autocomplete).toBe(1);
   });
 
   it("consultas distintas sí llaman al proveedor", async () => {
     const { provider, llamadas } = proveedorFalso();
     const conCache = withCache(provider);
-    await conCache.autocomplete("Alicante 937", bias);
+    await conCache.autocomplete("Moneda 1025", bias);
     await conCache.autocomplete("Moneda 975", bias);
     expect(llamadas.autocomplete).toBe(2);
   });
@@ -65,8 +65,8 @@ describe("withCache", () => {
   it("distinta comuna declarada es distinta consulta", async () => {
     const { provider, llamadas } = proveedorFalso();
     const conCache = withCache(provider);
-    await conCache.autocomplete("Alicante 937", bias, { adminArea: { name: "Las Condes" } });
-    await conCache.autocomplete("Alicante 937", bias, { adminArea: { name: "Providencia" } });
+    await conCache.autocomplete("Moneda 1025", bias, { adminArea: { name: "Las Condes" } });
+    await conCache.autocomplete("Moneda 1025", bias, { adminArea: { name: "Providencia" } });
     expect(llamadas.autocomplete).toBe(2);
   });
 
@@ -74,7 +74,7 @@ describe("withCache", () => {
     const { provider, llamadas } = proveedorFalso();
     const conCache = withCache(provider);
     // Veinte personas escribiendo lo mismo en el mismo instante.
-    await Promise.all(Array.from({ length: 20 }, () => conCache.geocode("Alicante 937", bias)));
+    await Promise.all(Array.from({ length: 20 }, () => conCache.geocode("Moneda 1025", bias)));
     expect(llamadas.geocode).toBe(1);
   });
 
@@ -101,8 +101,8 @@ describe("withCache", () => {
     const { provider, llamadas } = proveedorFalso();
     provider.capabilities.cacheable = false;
     const conCache = withCache(provider);
-    await conCache.autocomplete("Alicante 937", bias);
-    await conCache.autocomplete("Alicante 937", bias);
+    await conCache.autocomplete("Moneda 1025", bias);
+    await conCache.autocomplete("Moneda 1025", bias);
     expect(llamadas.autocomplete).toBe(2);
   });
 

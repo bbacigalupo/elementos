@@ -1,5 +1,5 @@
 import type { GeoBias, GeocodeOutcome, LocationValue, Suggestion } from "../types.ts";
-import { DEFAULT_USER_AGENT, fetchWithRetry } from "../fetch-retry.ts";
+import { DEFAULT_USER_AGENT, fetchWithRetry, throwIfRateLimited } from "../fetch-retry.ts";
 import { osmToLocationValue, osmToOutcome, viewboxFor, type OsmResult } from "./osm.ts";
 import type { GeoProvider, RequestOptions } from "./types.ts";
 
@@ -44,6 +44,7 @@ export function createNominatimProvider(config: NominatimConfig = {}): GeoProvid
     // server (el caso real) sí. Nominatim igual acepta el fallback.
     const res = await fetchWithRetry(url, { headers: { "User-Agent": userAgent }, signal }, { signal });
     if (res.status === 404) return [];
+    throwIfRateLimited("Nominatim", res);
     if (!res.ok) throw new Error(`Nominatim respondió ${res.status}`);
     const body = await res.json();
     return Array.isArray(body) ? body : [body];

@@ -31,29 +31,29 @@ function sug(label: string, sublabel: string): Suggestion {
 
 describe("normalizeTokens", () => {
   it("quita tildes y mayúsculas, conserva números", () => {
-    expect(normalizeTokens("Las Raíces 1700, Peñalolén")).toEqual([
-      "las",
-      "raices",
-      "1700",
-      "penalolen",
+    expect(normalizeTokens("Av. Grecia 3000, Ñuñoa")).toEqual([
+      "av",
+      "grecia",
+      "3000",
+      "nunoa",
     ]);
   });
 });
 
 describe("assessSuggestions", () => {
   it("caso real: sugerencias que no coinciden → weak", () => {
-    // Escribió "las raices 1700 peñalolen"; el geocoder ofrece la calle sin
+    // Escribió "av. grecia 3000 ñuñoa"; el geocoder ofrece la calle sin
     // número y otra calle con ese número.
-    const result = assessSuggestions("las raices 1700 peñalolen", [
-      sug("Las Raíces", "Santiago, Región Metropolitana de Santiago"),
-      sug("Avenida Las Perdices 1700", "Santiago, Región Metropolitana de Santiago"),
+    const result = assessSuggestions("av. grecia 3000 ñuñoa", [
+      sug("Av. Grecia", "Santiago, Región Metropolitana de Santiago"),
+      sug("Avenida Bilbao 3000", "Santiago, Región Metropolitana de Santiago"),
     ]);
     expect(result).toBe("weak");
   });
 
   it("match completo con tildes distintas → strong", () => {
-    const result = assessSuggestions("las raices 1700 peñalolen", [
-      sug("Las Raíces 1700", "Peñalolén, Región Metropolitana de Santiago"),
+    const result = assessSuggestions("av. grecia 3000 ñuñoa", [
+      sug("Av. Grecia 3000", "Peñalolén, Región Metropolitana de Santiago"),
     ]);
     expect(result).toBe("strong");
   });
@@ -78,8 +78,8 @@ describe("assessSuggestions", () => {
 
   it("coverage: parcial", () => {
     const c = suggestionCoverage(
-      "las raices 1700 peñalolen",
-      sug("Las Raíces", "Santiago, Región Metropolitana de Santiago"),
+      "av. grecia 3000 ñuñoa",
+      sug("Av. Grecia", "Santiago, Región Metropolitana de Santiago"),
     );
     expect(c).toBe(0.5);
   });
@@ -97,12 +97,12 @@ describe("adminAreaMatches", () => {
 
   it("geocoder impreciso: declara Peñalolén y OSM dice Santiago pero deja el barrio", () => {
     // Caso real de Photon para una dirección de Peñalolén.
-    const v = value({ commune: "Santiago", sublocality: "Peñalolén" }, "Las Raíces, Santiago");
+    const v = value({ commune: "Santiago", sublocality: "Peñalolén" }, "Av. Grecia, Santiago");
     expect(adminAreaMatches(v, { name: "Peñalolén" })).toBe(true);
   });
 
   it("punto en otra comuna: declara Providencia y el pin está en Las Condes", () => {
-    const v = value({ commune: "Las Condes", city: "Santiago" }, "Alicante 937, Las Condes, Santiago");
+    const v = value({ commune: "Las Condes", city: "Santiago" }, "Moneda 1025, Las Condes, Santiago");
     expect(adminAreaMatches(v, { name: "Providencia" })).toBe(false);
   });
 

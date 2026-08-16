@@ -8,7 +8,7 @@ import {
   type Suggestion,
 } from "../types.ts";
 import { dedupeSuggestions } from "../suggestions.ts";
-import { DEFAULT_USER_AGENT, fetchWithRetry } from "../fetch-retry.ts";
+import { DEFAULT_USER_AGENT, fetchWithRetry, throwIfRateLimited } from "../fetch-retry.ts";
 import { precisionToMatchedLevel } from "./osm.ts";
 import type { AutocompleteOptions, GeoProvider, RequestOptions } from "./types.ts";
 
@@ -143,6 +143,7 @@ export function createPhotonProvider(config: PhotonConfig = {}): GeoProvider {
     if (bias.lang && PHOTON_LANGS.has(bias.lang)) url.searchParams.set("lang", bias.lang);
 
     const res = await fetchWithRetry(url, { headers, signal }, { signal });
+    throwIfRateLimited("Photon", res);
     if (!res.ok) throw new Error(`Photon respondió ${res.status}`);
     const body = (await res.json()) as { features?: PhotonFeature[] };
     const features = body.features ?? [];
@@ -185,7 +186,8 @@ export function createPhotonProvider(config: PhotonConfig = {}): GeoProvider {
       url.searchParams.set("lon", String(lng));
       if (opts?.lang && PHOTON_LANGS.has(opts.lang)) url.searchParams.set("lang", opts.lang);
       const res = await fetchWithRetry(url, { headers, signal: opts?.signal }, { signal: opts?.signal });
-      if (!res.ok) throw new Error(`Photon respondió ${res.status}`);
+      throwIfRateLimited("Photon", res);
+    if (!res.ok) throw new Error(`Photon respondió ${res.status}`);
       const body = (await res.json()) as { features?: PhotonFeature[] };
       if (!body.features || body.features.length === 0) return null;
       const value = toLocationValue(body.features[0]);

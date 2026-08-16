@@ -1,0 +1,32 @@
+{
+  "name": "@allride/geo-batch-api",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "API de geocodificación masiva para sistemas externos: contrato HTTP portable, trabajos con worker, links firmados de corrección. Sin dependencias y sin base de datos propia.",
+  "license": "UNLICENSED",
+  "private": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
+    "typecheck": "tsc --noEmit -p .",
+    "example": "tsx examples/external-system-demo.mts"
+  },
+  "dependencies": {
+    "@allride/geo-core": "^0.8.0"
+  },
+  "devDependencies": {
+    "tsx": "^4"
+  }
+}

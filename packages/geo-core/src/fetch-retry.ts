@@ -102,3 +102,55 @@ export async function fetchWithRetry(
 
   throw lastError instanceof Error ? lastError : new Error("fetch falló tras reintentos");
 }
+
+/**
+ * El proveedor rechazó por exceso de consultas (429).
+ *
+ * Existe como error propio porque la diferencia importa río abajo y se
+ * perdía por completo: un 429 del proveedor terminaba como "provider_error"
+ * genérico, el motor de lote lo trataba como una falla cualquiera, gastaba
+ * sus reintentos de red en menos de un segundo y marcaba la dirección como
+ * fallida para siempre. En una prueba real con 250 direcciones eso produjo
+ * 62 "fallidas" que eran perfectamente geocodificables — el peor resultado
+ * posible, porque se ve como un problema de los datos y no de la cuota.
+ */
+export class ProviderRateLimitError extends Error {
+  /** Segundos que pidió esperar el proveedor, si lo indicó. */
+  readonly retryAfterSeconds: number | null;
+
+  constructor(provider: string, retryAfterSeconds: number | null = null) {
+    super(`${provider} respondió 429 (límite de consultas)`);
+    this.name = "ProviderRateLimitError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+/** Lanza el error tipado cuando la respuesta es un 429. */
+export function throwIfRateLimited(provider: string, response: Response): void {
+  if (response.status !== 429) return;
+  const header = response.headers.get("retry-after");
+  const seconds = header ? Number(header) : NaN;
+  throw new ProviderRateLimitError(provider, Number.isFinite(seconds) ? seconds : null);
+}
+
+/**
+ * La credencial que usa el proveedor fue rechazada (401/403).
+ *
+ * Existe como error propio por la misma razón que `ProviderRateLimitError`:
+ * sin distinguirlo, una key vencida o revocada se ve exactamente igual que
+ * una dirección que no existe, y el lote entero se llena de "fallidas" que
+ * no tienen nada que ver con los datos — reintentar tampoco ayuda nunca,
+ * porque la clave no se va a arreglar sola.
+ */
+export class ProviderAuthError extends Error {
+  constructor(provider: string) {
+    super(`${provider} rechazó la credencial configurada (401/403)`);
+    this.name = "ProviderAuthError";
+  }
+}
+
+/** Lanza el error tipado cuando la respuesta es 401 o 403. */
+export function throwIfUnauthorized(provider: string, response: Response): void {
+  if (response.status !== 401 && response.status !== 403) return;
+  throw new ProviderAuthError(provider);
+}
