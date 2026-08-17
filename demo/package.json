@@ -9,11 +9,13 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
+    "@allride/address-batch": "*",
     "@allride/address-input": "*",
     "@allride/geo-core": "*",
     "leaflet": "^1.9.4",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@types/react": "^19",

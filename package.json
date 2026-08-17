@@ -2,7 +2,7 @@
   "name": "elementos",
   "private": true,
   "version": "0.1.0",
-  "description": "Elementos reutilizables de AllRide — monorepo de componentes compartidos entre interfaces",
+  "description": "Elementos reutilizables de AllRide \u2014 monorepo de componentes compartidos entre interfaces",
   "workspaces": [
     "packages/*",
     "demo"
@@ -11,7 +11,7 @@
     "dev": "npm run dev -w elementos-demo",
     "test": "vitest run",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build -w @allride/geo-core && npm run build -w @allride/address-input"
+    "build": "npm run build -w @allride/geo-core && npm run build -w @allride/address-input && npm run build -w @allride/address-batch && npm run build -w @allride/geo-batch-api"
   },
   "devDependencies": {
     "@types/node": "^22",

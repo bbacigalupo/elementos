@@ -2,3 +2,11 @@ node_modules/
 dist/
 *.tgz
 .DS_Store
+
+# Claves locales (LOCATIONIQ_KEY). Nunca se versionan; ver README.
+.env
+.env.local
+!.env.example
+
+# Archivos de prueba servidos por el playground.
+demo/public/

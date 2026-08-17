@@ -8,7 +8,9 @@ forma independiente y se integra donde se necesite.
 elementos/
 ├── packages/
 │   ├── geo-core/        # @allride/geo-core — lógica pura de geolocalización (0 dependencias)
-│   └── address-input/   # @allride/address-input — hook + componente React
+│   ├── address-input/   # @allride/address-input — captura de UNA dirección
+│   ├── address-batch/   # @allride/address-batch — geocodificación MASIVA
+│   └── geo-batch-api/   # @allride/geo-batch-api — API para sistemas externos
 └── demo/                # Playground (Vite) — npm run dev → http://localhost:5199
 ```
 
@@ -41,12 +43,12 @@ ingresar coordenadas / link de Google Maps ─────────┘    arr
   cobertura de tokens normalizados —sin tildes, con match por prefijo para texto a medio
   escribir— y presencia de la altura numérica. Si la mejor sugerencia cubre menos del 70%,
   o falta el número que la persona escribió, el pie cambia a *"¿Ninguna coincide con lo que
-  escribiste?"*. Ejemplo real: escribir `las raíces 1700 peñalolén` y recibir "Las Raíces"
-  (sin número) y "Las Perdices 1700" (otra calle) se detecta como match débil.
+  escribiste?"*. Ejemplo real: escribir `av. grecia 3000 ñuñoa` y recibir "Av. Grecia"
+  (sin número) y "Av. Grecia Norte 3000" (otra calle) se detecta como match débil.
 - Las sugerencias se **deduplican por texto visible**: los geocoders OSM repiten lugares y
   dos filas que se leen igual son imposibles de elegir (además de romper las keys de React).
 - **Las coincidencias se resaltan** en el color de acento: al pintar lo que sí calza, lo que
-  queda sin pintar delata la diferencia (`Las Perdices` vs `Las Raíces`). El color va con
+  queda sin pintar delata la diferencia (`Av. Grecia Norte` vs `Av. Grecia`). El color va con
   peso semibold para no depender solo de percibir el celeste.
 - Al **marcar en el mapa**, el pin no cae en el centro genérico de la zona: si la persona
   alcanzó a escribir algo, ancla en la mejor coincidencia encontrada (aunque sea solo la
@@ -213,6 +215,38 @@ autocompletado libre, como antes.
 pedido, y lo marca en las métricas (`belowMinPrecision`) para filtrar en el análisis.
 `privacyHint` muestra el aviso para capturar domicilios particulares.
 
+### La comuna correcta por país
+
+OSM **no dice en qué campo viene la comuna**, y el campo cambia según la ciudad:
+
+| Dirección | Comuna real | `suburb` | `city` |
+|---|---|---|---|
+| Av. Apoquindo 4501 | Las Condes | **Las Condes** | Santiago |
+| Av. Grecia 3000 | Ñuñoa | **Ñuñoa** | Santiago |
+| Moneda 1025 | Santiago | — | **Santiago** |
+| Av. Pedro Montt 1900 (Valparaíso) | Valparaíso | Almendral | **Valparaíso** |
+
+En el Gran Santiago la comuna está en `suburb` y `city` nombra a toda la
+conurbación; en Valparaíso es exactamente al revés. **Preferir un campo fijo
+acierta en una ciudad y falla en la otra.** Antes se usaba `city`, así que una
+dirección de Las Condes se exportaba con comuna "Santiago" — un dato incorrecto
+que se propaga a rutas, informes y decisiones.
+
+La regla que sí funciona es preguntar **cuál de los valores es una comuna de
+verdad**, y para eso hace falta la lista: el paquete trae las 346 comunas de
+Chile (6 KB). `city` se conserva como lo que OSM dice que es — otro nivel, no un
+error — y el barrio deja de repetir a la comuna.
+
+Para otros países se registra su lista y el mapeo empieza a acertar ahí también:
+
+```ts
+import { registerAdminAreas } from "@allride/geo-core";
+
+registerAdminAreas("MX", ["Cuauhtémoc", "Benito Juárez", "Miguel Hidalgo", …]);
+```
+
+Sin catálogo para un país, se mantiene la regla anterior (`city`, luego `town`).
+
 ### Protección contra abuso y consumo excesivo
 
 Las defensas vienen puestas por defecto: quien integra el elemento no debería tener que
@@ -265,6 +299,186 @@ protegerían con un almacén compartido. Para volumen alto conviene pasar un `ra
 respaldado en base de datos —como hace la encuesta de estudio-movilidad— y, llegado el
 caso, una caché compartida.
 
+## Elemento 2: geocodificación masiva
+
+Recibe muchas direcciones en texto, las convierte a coordenadas y **separa las que se
+pueden usar de las que hay que revisar**. Esa separación es todo el punto: en captura
+individual la persona ve el resultado y lo corrige sola; en masivo nadie mira fila por
+fila, así que un resultado mediocre entra al análisis como si fuera bueno.
+
+```tsx
+import { AddressBatch } from "@allride/address-batch";
+import { httpClient } from "@allride/geo-core";
+import "@allride/address-batch/styles.css";
+
+<AddressBatch
+  client={httpClient("/api/geo")}
+  bias={{ country: "CL", center: { lat: -33.4489, lng: -70.6693 }, radiusKm: 40 }}
+  maxRows={100}                 // sin valor: sin tope
+  concurrency={3}
+  minIntervalMs={500}           // ritmo del proveedor
+  storageKey="mi-app-lote"      // permite retomar un lote interrumpido
+  onComplete={(r) => …}
+/>
+```
+
+### Entrada
+
+Cuatro caminos que terminan en la misma estructura:
+
+| Camino | Detalle |
+|---|---|
+| Escribir | Una dirección por línea. No se busca mientras se escribe: se busca al final. |
+| Pegar de Excel | Llega separado por tabuladores; aparece el mapeo de columnas. |
+| Cargar CSV | Lector RFC 4180 real: una celda con saltos de línea o comas no desalinea la planilla. |
+| Cargar Excel | `.xlsx/.xlsm/.xlsb/.xls/.ods`. Si el libro tiene varias hojas con datos, pregunta cuál. |
+
+Hay **plantillas descargables** (`.xlsx`, con CSV como respaldo) para repartir a quien
+tenga que llenarlas, con direcciones reales que de verdad geocodifican.
+
+El criterio para decidir entre tabla y lista de líneas no es simétrico entre separadores,
+y no puede serlo: **tabulador y punto y coma son siempre tabla; la coma, solo si hay
+encabezados reconocibles**. `Av. Providencia 1234, Providencia, Santiago` es una
+dirección, no tres columnas — y es justo el formato que se le pide a la gente.
+
+Las **columnas que no se usan igual se conservan** y vuelven en la exportación: quien
+carga una nómina con nombre, RUT y centro de costo espera recuperar su planilla con las
+coordenadas al lado, no una tabla nueva que después tiene que cruzar a mano.
+
+### Los tres estados
+
+`classify.ts` reusa la evaluación de relevancia del elemento individual y le suma lo que
+el masivo necesita:
+
+| Motivo | Qué detecta |
+|---|---|
+| `no_house_number` | Se pidió una altura y solo se ubicó la calle. **La herramienta pública actual reporta esto como "OK".** |
+| `number_mismatch` | Devolvió otra altura. |
+| `street_mismatch` | Devolvió **otra calle**. Pedir `Av. Grecia 3000` y recibir `Av. Grecia Norte 3000` cubre 75% de los tokens, con precisión de dirección exacta: se ve impecable y está en otra calle. |
+| `zone_only` | Cayó en el centro de una comuna, no en una dirección. |
+| `weak_match` | Lo devuelto no se parece en general a lo pedido. |
+| `outside_admin_area` | El punto no está en la comuna declarada. |
+| `far_from_bias` | Quedó lejísimos de la zona de operación. |
+| `far_from_batch` | Quedó lejos de **todo el resto del lote**. Es la red que atrapa el "Santiago" que aterriza en Santiago de Cuba: cada punto se ve perfecto de a uno y solo el conjunto delata que uno está a 6.000 km. Usa mediana y no promedio — unos pocos disparates arrastran el promedio hasta dejar de parecer disparates. |
+
+### Revisión y corrección
+
+El resumen **funciona como filtro**: cada contador lleva a sus filas. Cada fila incierta
+explica en palabras qué le pasa. Las filas conservan su índice original de la planilla al
+filtrar, para poder ir a esa fila en el Excel de origen.
+
+Lo incierto y lo fallido se **corrigen a mano con el elemento 1**, fila por fila: el pin
+que la persona confirma reemplaza al del geocoder y queda marcado como
+`corregido a mano` en la exportación. La corrección **se propaga a las filas repetidas**:
+corregir solo la que se está mirando dejaría a las otras con un punto que ya se sabe
+equivocado, y nadie volvería a revisarlas porque el resumen mostraría el problema como
+resuelto.
+
+El mapa muestra **lo filtrado, no todo**: filtrando por inciertas se ve dónde se
+concentran los problemas geográficamente. Renderiza en canvas, así que miles de puntos no
+necesitan una librería de clustering.
+
+### Salida
+
+`.xlsx`, `.csv` y **copiar al portapapeles** en TSV para pegar directo en una planilla.
+Los tres salen de la misma tabla, así que no pueden decir cosas distintas.
+
+- En el `.xlsx` las coordenadas son **números de verdad**, no texto: si no, no se pueden
+  promediar ni graficar, y Excel marca cada fila con el triangulito verde.
+- El `.csv` sale con `;`, coma decimal y BOM. Con coma como separador, Excel en español
+  mete todo en la primera columna; sin BOM, "Peñalolén" llega como "PeÃ±alolÃ©n".
+- Las filas fallidas **aparecen marcadas**, no desaparecen: una planilla a la que le
+  faltan doce filas se cruza mal y nadie nota lo que falta.
+
+### Lo que cuesta un lote, y cómo no romperlo
+
+Un lote de 500 direcciones son 500 consultas seguidas del mismo navegador. Eso rompe las
+defensas pensadas para captura individual, y hay que configurarlo a propósito:
+
+**En el proxy** — `createMemoryRateLimit` (ventana fija, el default) **no sirve para
+lotes**: reparte permisos en tajadas de un minuto, así que la consulta 121 no se demora,
+falla. Usa el limitador de balde:
+
+```ts
+createGeoHandlers({
+  provider,
+  rateLimit: createBatchRateLimit({ ratePerMinute: 240, burst: 600 }),
+});
+```
+
+**En el motor** — un 429 del proveedor se reconoce como límite de cuota y **frena el lote
+completo**, no solo la fila rechazada, y baja el ritmo para lo que queda. Reintentar fila
+por fila es la granularidad equivocada: mientras una espera, los otros workers siguen
+golpeando el servicio y agotan sus reintentos en paralelo.
+
+> Medido con 250 direcciones reales contra LocationIQ free: **62 fallidas** con reintento
+> por fila (direcciones perfectamente geocodificables, descartadas por cuota), **9** con
+> freno compartido.
+
+**Consultas que nunca se envían.** Cada una de estas ahorra cuota sin perder nada:
+
+| Ahorro | Detalle |
+|---|---|
+| Direcciones repetidas | Se consultan una sola vez y el resultado se copia al resto. |
+| Tipo de vía normalizado | `Av. Providencia 1234`, `Avenida Providencia 1234` y `Providencia 1234` son **una** consulta, no tres. En una nómina que llenó cada persona por su cuenta, esto es lo normal. |
+| Filas que ya son coordenadas | `-33.4489, -70.6693` o un link de Google Maps pegado se resuelven localmente, con `precision: "exact"`. Antes se mandaban al geocoder: gastaban cuota **y volvían fallidas**. |
+| Volver a procesar la misma lista | Lo ya resuelto en la sesión no se vuelve a consultar. Editar 3 líneas de 500 cuesta 3 consultas, no 500 — y el flujo real es justamente iterativo. |
+| Caché del proxy | Compartida entre todas las personas, con fusión de peticiones idénticas en vuelo. |
+
+Y hay tope de lectura de archivo (`readLimit`, 50.000 filas) para que una planilla con un
+millón de filas usadas por accidente no cuelgue la pestaña; con `storageKey` el avance se
+guarda cada 2 segundos para **retomar un lote interrumpido** sin volver a pagar la cuota
+ya consumida.
+
+### Que la espera se sienta corta
+
+Un lote grande tarda minutos y no hay forma de acelerarlo más allá de la cuota del
+proveedor. Lo que sí se puede es que ese rato no se sienta como una pantalla congelada:
+
+- **La tabla se llena en vivo.** Ver direcciones reales apareciendo es progreso de
+  contenido; una barra es progreso abstracto. Es la palanca más fuerte que existe acá.
+- **La barra va segmentada por estado** — se ve venir si el lote viene torcido, sin
+  esperar al final.
+- **El tiempo restante se calcula con el ritmo de las últimas 20 filas**, no con el
+  promedio desde el arranque. Con promedio acumulado la estimación se congela cuando el
+  servicio empieza a frenar: en la corrida de 250 mostró "faltan 2 min" en seis lecturas
+  seguidas mientras se resolvían 78 filas.
+- **El título de la pestaña muestra el porcentaje** (`45% · Geocodificando`), porque a los
+  dos minutos la persona se fue a otra pestaña. Al terminar, una notificación del sistema
+  **solo si el permiso ya estaba dado** — nunca se pide.
+- **La pausa por cuota trae cuenta regresiva.** Esperar mirando un reloj se hace bastante
+  más corto que esperar mirando nada.
+- **Tips rotativos** que explican algo usable al terminar, no relleno para llenar el
+  silencio.
+- **El cierre encabeza con la tarea, no con la tabla**: *"241 listas. 9 necesitan tu
+  revisión"* convierte un muro de 250 filas en un trabajo de nueve.
+
+Todo lo animado respeta `prefers-reduced-motion`.
+
+### Peso
+
+`xlsx` y `leaflet` se cargan con `import()` diferido. Un despliegue que solo pega texto y
+exporta CSV no baja ninguno de los dos:
+
+| Se carga | Cuándo |
+|---|---|
+| `leaflet` (~150 KB) | Al abrir el mapa |
+| `@allride/address-input` | Al pulsar "Corregir" en una fila |
+| `xlsx` (~970 KB) | Al cargar un Excel o pedir una plantilla |
+
+> **Sobre `xlsx`**: el paquete de npm quedó congelado en 0.18.5, con advisories abiertos
+> de prototype pollution y ReDoS. Importa de verdad acá, porque este código parsea
+> archivos que sube gente de afuera. SheetJS publica las versiones corregidas en su propio
+> registro:
+>
+> ```bash
+> npm install "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+> ```
+>
+> Es una peer dependency **opcional**: sin ella el elemento funciona con texto y CSV, y lo
+> dice en pantalla en vez de romperse.
+
+
 ### Versionado y consumo
 
 Los paquetes se publican versionados; los consumidores fijan la versión y adoptan los
@@ -288,12 +502,18 @@ npm test           # tests (parser de coordenadas)
 npm run typecheck  # los 3 workspaces
 ```
 
-El playground usa Photon por defecto; con `LOCATIONIQ_KEY` en el entorno, el proxy usa
-LocationIQ. También está en `.claude/launch.json` como `elementos-demo`.
+El playground usa Photon por defecto. Para probar con LocationIQ, copia `.env.example` a
+`.env.local` (en `elementos/`, no en `demo/`) y pon la clave ahí: la lee `vite.config.ts`
+con `loadEnv` y **no lleva prefijo `VITE_` justamente para que nunca llegue al navegador**.
+También está en `.claude/launch.json` como `elementos-demo`.
 
 ### Pendientes / ideas
 
 - Adapter Google Places (New) con session tokens (autocomplete cobra por sesión).
+- Trabajo en servidor para lotes muy grandes. `runBatch` ya es isomorfo (no toca el DOM),
+  así que correría allá sin reescribirlo: falta quién lo llame y dónde guarde el progreso.
+- Limitador de cuota respaldado en base de datos: el de balde vive en memoria del proceso
+  y en serverless cada instancia tiene el suyo.
 - Bias por IP server-side cuando no hay `center` configurado.
 - Caché de geocodificaciones en backend (legal con proveedores OSM).
 - Publicación como paquetes npm privados cuando haya un segundo consumidor real

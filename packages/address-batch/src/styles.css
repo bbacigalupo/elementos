@@ -1,0 +1,874 @@
+/*
+ * Estilos de <AddressBatch> (prefijo .arb-).
+ * Personalización por variables CSS — redefine en tu app:
+ *   .arb-root { --arb-accent: #tu-color; }
+ *
+ * Las variables replican los nombres del elemento individual (--ari-*) para
+ * que un despliegue que ya retiñó uno no tenga que aprender otro sistema.
+ */
+
+.arb-root {
+  --arb-accent: #29a8e0;
+  --arb-accent-contrast: #ffffff;
+  --arb-fg: #333333;
+  --arb-muted: #555555;
+  --arb-border: #d4d4d8;
+  --arb-surface: #ffffff;
+  --arb-surface-soft: #f4f4f5;
+  --arb-radius: 12px;
+
+  /* Los tres estados llevan color Y texto: el color solo excluiría a quien
+     no distingue verde de ámbar, que es justo el corte que más importa acá. */
+  --arb-ok-bg: #ecfdf5;
+  --arb-ok-fg: #065f46;
+  --arb-uncertain-bg: #fffbeb;
+  --arb-uncertain-fg: #92400e;
+  --arb-failed-bg: #fef2f2;
+  --arb-failed-fg: #991b1b;
+
+  --arb-font: inherit;
+  --arb-font-heading: var(--arb-font);
+
+  color: var(--arb-fg);
+  font-family: var(--arb-font);
+  font-size: 1rem;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.arb-root *,
+.arb-root *::before,
+.arb-root *::after {
+  box-sizing: border-box;
+}
+
+.arb-label {
+  display: block;
+  margin: 0 0 0.25rem;
+  font-family: var(--arb-font-heading);
+  font-weight: 700;
+}
+
+.arb-help {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--arb-muted);
+}
+
+.arb-muted {
+  color: var(--arb-muted);
+  font-size: 0.875rem;
+}
+
+/* ---------- entrada ---------- */
+
+.arb-dropzone {
+  border: 1px dashed var(--arb-border);
+  border-radius: var(--arb-radius);
+  padding: 1rem;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.arb-dropzone-active {
+  border-color: var(--arb-accent);
+  background: var(--arb-surface-soft);
+}
+
+.arb-textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* ≥16px evita el auto-zoom de iOS al enfocar. */
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--arb-fg);
+  background: var(--arb-surface);
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  padding: 0.75rem 0.875rem;
+  resize: vertical;
+}
+
+.arb-textarea:focus-visible,
+.arb-select:focus-visible,
+.arb-button:focus-visible {
+  outline: 2px solid var(--arb-accent);
+  outline-offset: 2px;
+}
+
+.arb-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  background: var(--arb-surface-soft);
+}
+
+.arb-file-input {
+  display: none;
+}
+
+.arb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.arb-status {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.arb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ---------- botones ---------- */
+
+.arb-button {
+  font: inherit;
+  font-size: 0.9375rem;
+  border-radius: var(--arb-radius);
+  padding: 0.625rem 1rem;
+  cursor: pointer;
+  border: 1px solid var(--arb-border);
+  background: var(--arb-surface);
+  color: var(--arb-fg);
+  transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.arb-button:hover:not(:disabled) {
+  background: var(--arb-surface-soft);
+  border-color: var(--arb-accent);
+}
+
+.arb-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.arb-button-primary {
+  background: var(--arb-accent);
+  border-color: var(--arb-accent);
+  color: var(--arb-accent-contrast);
+  font-weight: 600;
+}
+
+.arb-button-primary:hover:not(:disabled) {
+  background: #1f8dbe;
+  border-color: #1f8dbe;
+}
+
+.arb-select {
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--arb-fg);
+  background: var(--arb-surface);
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  padding: 0.5rem 0.625rem;
+  width: 100%;
+}
+
+/* ---------- avisos ---------- */
+
+.arb-notice {
+  margin: 0;
+  font-size: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--arb-radius);
+  background: var(--arb-surface-soft);
+  color: var(--arb-muted);
+}
+
+.arb-notice-warn {
+  background: var(--arb-uncertain-bg);
+  color: var(--arb-uncertain-fg);
+}
+
+.arb-notice-error {
+  background: var(--arb-failed-bg);
+  color: var(--arb-failed-fg);
+}
+
+/* ---------- paneles ---------- */
+
+.arb-panel {
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.arb-panel-title {
+  margin: 0;
+  font-family: var(--arb-font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* ---------- mapeo de columnas ---------- */
+
+.arb-mapping {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.arb-mapping-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.arb-mapping-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arb-preview-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--arb-muted);
+}
+
+/* La tabla scrollea dentro de su caja: una planilla ancha no debe hacer
+   scrollear horizontalmente toda la página que integra el elemento. */
+.arb-table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+}
+
+.arb-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.arb-table th,
+.arb-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--arb-border);
+  white-space: nowrap;
+}
+
+.arb-table th {
+  background: var(--arb-surface-soft);
+  font-weight: 600;
+}
+
+.arb-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------- proceso ---------- */
+
+.arb-progress {
+  height: 0.75rem;
+  border-radius: 999px;
+  background: var(--arb-surface-soft);
+  overflow: hidden;
+}
+
+.arb-progress-bar {
+  height: 100%;
+  background: var(--arb-accent);
+  /* Transición corta: con el refresco limitado a 10 por segundo, sin esto
+     la barra avanza a saltos visibles. */
+  transition: width 0.2s linear;
+}
+
+.arb-progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.arb-current {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--arb-muted);
+  /* Una dirección larga no debe estirar el panel ni saltar de alto en cada
+     actualización. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arb-counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.arb-chip {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: var(--arb-surface-soft);
+  color: var(--arb-muted);
+}
+
+.arb-chip-ok {
+  background: var(--arb-ok-bg);
+  color: var(--arb-ok-fg);
+}
+
+.arb-chip-uncertain {
+  background: var(--arb-uncertain-bg);
+  color: var(--arb-uncertain-fg);
+}
+
+.arb-chip-failed {
+  background: var(--arb-failed-bg);
+  color: var(--arb-failed-fg);
+}
+
+/* ---------- tabla de resultados ---------- */
+
+.arb-chip-button {
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.arb-chip-button:hover {
+  border-color: currentColor;
+}
+
+/* El filtro activo se marca con borde y anillo, no solo con color: los
+   chips ya usan color para el estado y dos significados en la misma señal
+   dejan de leerse. */
+.arb-chip-selected {
+  border-color: currentColor;
+  box-shadow: 0 0 0 2px var(--arb-surface), 0 0 0 3px currentColor;
+}
+
+.arb-chip-button:focus-visible {
+  outline: 2px solid var(--arb-accent);
+  outline-offset: 2px;
+}
+
+.arb-search {
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--arb-fg);
+  background: var(--arb-surface);
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  padding: 0.5rem 0.75rem;
+  min-width: 14rem;
+  flex: 1 1 14rem;
+}
+
+.arb-search:focus-visible {
+  outline: 2px solid var(--arb-accent);
+  outline-offset: 2px;
+}
+
+.arb-table-results {
+  font-size: 0.8125rem;
+}
+
+/* La tabla puede tener miles de filas: fijar el encabezado evita perder de
+   vista qué columna se está mirando al bajar. */
+.arb-table-results thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.arb-table-scroll {
+  max-height: 32rem;
+  overflow: auto;
+}
+
+/* Las direcciones son largas y variables: sin un ancho máximo, una sola
+   fila estira la tabla y empuja las coordenadas fuera de la pantalla. */
+.arb-cell-wide {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arb-cell-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.arb-cell-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.arb-button-small {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+}
+
+.arb-row-open td {
+  background: var(--arb-surface-soft);
+}
+
+.arb-row-detail td {
+  white-space: normal;
+  background: var(--arb-surface-soft);
+  padding: 0.75rem 1rem;
+}
+
+.arb-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.arb-detail-issues {
+  margin: 0;
+  padding-left: 1.125rem;
+  color: var(--arb-uncertain-fg);
+}
+
+.arb-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+}
+
+.arb-detail-grid dt {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--arb-muted);
+}
+
+.arb-detail-grid dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+/* ---------- mapa ---------- */
+
+.arb-root {
+  --arb-map-height: 26rem;
+}
+
+.arb-map {
+  height: var(--arb-map-height);
+  width: 100%;
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  /* Leaflet pinta tiles y controles que se salen del radio si no se recorta. */
+  overflow: hidden;
+  /* Los popups y controles de Leaflet traen z-index altos; contenerlos evita
+     que se monten sobre el resto de la página que integra el elemento. */
+  isolation: isolate;
+}
+
+.arb-map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--arb-muted);
+  font-size: 0.875rem;
+  background: var(--arb-surface-soft);
+}
+
+.arb-row-selected td {
+  /* Franja lateral además del fondo: la fila resaltada tiene que
+     encontrarse de un vistazo tras venir desde el mapa. */
+  background: #e0f2fe;
+}
+
+.arb-row-selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--arb-accent);
+}
+
+
+/* ---------- exportación ---------- */
+
+.arb-export {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  background: var(--arb-surface-soft);
+}
+
+.arb-export .arb-toolbar {
+  margin-top: 0;
+}
+
+.arb-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--arb-muted);
+  cursor: pointer;
+}
+
+.arb-check input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--arb-accent);
+}
+
+.arb-resume {
+  border-color: var(--arb-accent);
+  background: var(--arb-surface-soft);
+}
+
+/* ---------- proceso: barra segmentada, vivo y tips ---------- */
+
+.arb-progress {
+  display: flex;
+}
+
+.arb-progress-bar {
+  transition: width 0.2s linear;
+}
+
+.arb-progress-ok { background: #059669; }
+.arb-progress-uncertain { background: #d97706; }
+.arb-progress-failed { background: #dc2626; }
+
+/* Mientras espera la cuota, la barra late: sin eso, una barra quieta con un
+   aviso al lado igual se lee como que algo se trabó. */
+.arb-progress-paused .arb-progress-bar {
+  animation: arb-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes arb-pulse {
+  50% { opacity: 0.45; }
+}
+
+.arb-live {
+  border: 1px solid var(--arb-border);
+  border-radius: var(--arb-radius);
+  padding: 0.625rem 0.75rem;
+  background: var(--arb-surface-soft);
+}
+
+.arb-live-title {
+  margin: 0 0 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--arb-muted);
+}
+
+.arb-live-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  /* Alto fijo: si creciera con cada fila, el panel entero saltaría y los
+     botones se moverían debajo del cursor. */
+  height: 9.5rem;
+  overflow: hidden;
+}
+
+.arb-live-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+  animation: arb-slide-in 0.25s ease-out;
+}
+
+@keyframes arb-slide-in {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+.arb-live-ok { border-left-color: #059669; }
+.arb-live-uncertain { border-left-color: #d97706; background: var(--arb-uncertain-bg); }
+.arb-live-failed { border-left-color: #dc2626; background: var(--arb-failed-bg); }
+.arb-live-corrected { border-left-color: #0284c7; }
+
+.arb-live-index {
+  font-variant-numeric: tabular-nums;
+  color: var(--arb-muted);
+  font-size: 0.75rem;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.arb-live-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arb-tip {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--arb-muted);
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--arb-radius);
+  background: var(--arb-surface-soft);
+  animation: arb-fade-in 0.4s ease-out;
+}
+
+@keyframes arb-fade-in {
+  from { opacity: 0; }
+}
+
+.arb-headline {
+  margin: 0;
+  font-family: var(--arb-font-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+/* Nada de esto es información: quien pidió menos movimiento no se pierde
+   nada apagándolo. */
+@media (prefers-reduced-motion: reduce) {
+  .arb-live-item,
+  .arb-tip,
+  .arb-progress-paused .arb-progress-bar {
+    animation: none;
+  }
+  .arb-progress-bar {
+    transition: none;
+  }
+}
+
+/* La acción de una fila que necesita trabajo se distingue de la de
+   inspección: son tareas distintas y conviene verlo al recorrer la tabla. */
+.arb-button-review {
+  border-color: var(--arb-accent);
+  color: var(--arb-accent);
+  font-weight: 600;
+}
+
+/* ---------- diálogo de corrección ---------- */
+
+.arb-dialog {
+  padding: 0;
+  border: none;
+  border-radius: var(--arb-radius);
+  background: var(--arb-surface);
+  color: var(--arb-fg);
+  font-family: var(--arb-font);
+  width: min(44rem, calc(100vw - 2rem));
+  /*
+   * Alto fijo y el mismo para los dos modos. Depender del contenido no
+   * funciona acá por dos razones: el desplegable de sugerencias está
+   * posicionado en absoluto y no aporta alto, y desde el buscador se puede
+   * pasar al mapa sin cerrar el diálogo — con altos distintos por modo, ese
+   * salto dejaba los botones fuera de la caja.
+   */
+  height: min(34rem, calc(100dvh - 2rem));
+  /* El diálogo no scrollea completo: el pie con las acciones queda fijo y
+     solo se desplaza el contenido, para no tener que bajar a buscar salida. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.arb-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+/*
+ * El elemento individual calcula el alto del desplegable contra la ventana,
+ * porque está pensado para vivir en una página. Dentro del modal el límite
+ * es el modal, no la ventana, y ese cálculo lo hacía desbordar el pie. Se
+ * acota acá —pisando el alto en línea que pone su propio JS— para que las
+ * sugerencias, el tip y las salidas entren completos.
+ */
+.arb-dialog .ari-dropdown {
+  max-height: min(19rem, 42dvh) !important;
+  overflow-y: auto;
+}
+
+/*
+ * El mapa del elemento individual está dimensionado para una pantalla
+ * completa. Dentro del diálogo tiene que dejar ver, al mismo tiempo, el pin
+ * y el botón de confirmar.
+ *
+ * Va sobre `.ari-root` y no sobre un ancestro: `.ari-root` **redeclara** la
+ * variable, así que un valor puesto más arriba nunca llegaba a aplicarse y
+ * el mapa seguía midiendo sus 22rem originales.
+ */
+.arb-dialog .ari-root {
+  --ari-map-height: min(15rem, 32dvh);
+}
+
+.arb-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+  /*
+   * Crece hasta llenar el diálogo. Sin esto el cuerpo se dimensionaba por su
+   * contenido y el pie quedaba flotando a media altura, con el diálogo vacío
+   * por debajo — y arriba, el contenido apretado en un carril angosto que
+   * cortaba el desplegable. `min-height: 0` es lo que permite que un hijo de
+   * flex con scroll propio se achique de verdad.
+   */
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.arb-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.arb-dialog-close {
+  font: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--arb-muted);
+  cursor: pointer;
+  flex: none;
+}
+
+.arb-dialog-close:hover {
+  background: var(--arb-surface-soft);
+  color: var(--arb-fg);
+}
+
+.arb-dialog-close:focus-visible {
+  outline: 2px solid var(--arb-accent);
+  outline-offset: 2px;
+}
+
+.arb-correction-original {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--arb-muted);
+  word-break: break-word;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .arb-dialog[open] {
+    animation: arb-dialog-in 0.16s ease-out;
+  }
+}
+
+@keyframes arb-dialog-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+.arb-results-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+/* ---------- diálogo de carga ---------- */
+
+/*
+ * Este diálogo se dimensiona por su contenido: no tiene mapa ni desplegable
+ * flotante, así que fijarle alto solo dejaría espacio vacío.
+ *
+ * `fit-content` y no `auto`: un `<dialog>` modal viene con `inset: 0` del
+ * navegador, y con `height: auto` eso significa "estírate de arriba a
+ * abajo". `fit-content` es justamente el valor que trae su hoja de estilos
+ * por defecto, y que la regla general de `.arb-dialog` había pisado.
+ */
+.arb-dialog-load {
+  height: fit-content;
+  max-height: calc(100dvh - 2rem);
+}
+
+.arb-drop-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 1.75rem 1rem;
+  border: 2px dashed var(--arb-border);
+  border-radius: var(--arb-radius);
+  text-align: center;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.arb-drop-target-active {
+  border-color: var(--arb-accent);
+  background: var(--arb-surface-soft);
+}
+
+.arb-drop-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.arb-templates-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--arb-muted);
+}
+
+.arb-template-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* El botón a la izquierda y el "cuándo usarla" al lado: la explicación es
+   lo que se lee primero al comparar dos plantillas. */
+.arb-template-list li {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 34rem) {
+  .arb-template-list li {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}
