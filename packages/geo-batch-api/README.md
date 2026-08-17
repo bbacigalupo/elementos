@@ -280,21 +280,15 @@ acá lo decide un límite de tiempo y no una señal del proveedor.
 
 **Cuota al crear el trabajo, ya resuelto**: un lote que pide más consultas
 de las que le quedan hoy al tenant se rechaza **al crearlo entero**, nunca
-se procesa a medias — `429 tenant_quota_exceeded` con `needed`,
-`remaining`, `limit` y `resetsAt`, mismo patrón que `/quota` en
-`geo-core/http` para el elemento embebido.
+se procesa a medias — `429 tenant_quota_exceeded` con `needed`, `remaining`,
+`limit`, `resetsAt` y un `detail` legible (mismo encuadre que
+`quotaPreflight`/`overLimit` en `@allride/address-batch/texts.ts`: nombra
+que el tope es del plan actual y ofrece contacto a ventas
+(`https://allrideapp.com/contacto/`) — no es un mensaje distinto inventado
+para la API, es el mismo límite visto desde otro cliente). Mismo patrón que
+`/quota` en `geo-core/http` para el elemento embebido.
 
-Dos cosas quedan pendientes:
-
-- **El texto exacto de cara al cliente de la API** (esto es JSON, no UI —
-  hoy el body solo trae el código de error y los números; falta el mensaje
-  legible). Debe nombrar explícitamente que el tope es del **plan actual**
-  y ofrecer contacto a ventas para ampliarlo
-  (`https://allrideapp.com/contacto/`) — mismo encuadre que
-  `quotaPreflight`/`overLimit` en `@allride/address-batch/texts.ts`. No
-  inventar un mensaje distinto para la API: es el mismo límite visto desde
-  otro cliente.
-- **La cuota que se agota a mitad de camino, no al crear — implementado.**
+**La cuota que se agota a mitad de camino, no al crear.**
   `tenant_quota_exceeded` es la cuota del cliente contra su propio plan,
   chequeada antes de arrancar (paso anterior). Distinta de lo que hace el
   worker (`worker.ts`, este paso): cuando `runBatch` se detiene con

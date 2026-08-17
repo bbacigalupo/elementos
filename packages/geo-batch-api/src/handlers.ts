@@ -139,6 +139,13 @@ interface CreateBatchBody {
   sync?: unknown;
 }
 
+// Mismo encuadre que `quotaPreflight`/`overLimit` en
+// `@allride/address-batch/texts.ts`: el tope es del plan actual, no un
+// error, y se ofrece contacto a ventas para ampliarlo — es el mismo límite
+// visto desde otro cliente, no un mensaje distinto inventado para la API.
+const TENANT_QUOTA_EXCEEDED_MESSAGE =
+  "Se alcanzó la cuota para esta herramienta gratuita. Puedes volver a intentar más tarde o si necesitas ampliar la cuota o acceder a más funciones de AllRide contacta a nuestro equipo de ventas: https://allrideapp.com/contacto/";
+
 const MAX_ADDRESS_LEN = 300;
 const DEFAULT_MAX_SYNC_ROWS = 10;
 const DEFAULT_SYNC_TIMEOUT_MS = 8_000;
@@ -342,7 +349,7 @@ export function createBatchApiHandlers(opts: BatchApiHandlersOptions): BatchApiH
         return json(429, {
           ok: false,
           error: "tenant_quota_exceeded",
-          detail: `este trabajo necesita ${needed} consultas y hoy quedan ${quota.remaining} en tu plan`,
+          detail: TENANT_QUOTA_EXCEEDED_MESSAGE,
           needed,
           remaining: quota.remaining,
           limit: quota.limit,
