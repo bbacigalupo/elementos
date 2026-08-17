@@ -6,6 +6,7 @@ export * from "./fetch-retry.ts";
 export * from "./cache.ts";
 export * from "./circuit-breaker.ts";
 export * from "./admin/index.ts";
+export * from "./map/tiles.ts";
 export * from "./batch/parse.ts";
 export * from "./batch/clean.ts";
 export * from "./batch/classify.ts";

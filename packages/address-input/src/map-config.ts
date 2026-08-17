@@ -3,97 +3,13 @@
  *
  * Ambas cosas son datos, no código: se pueden cambiar por proyecto sin
  * tocar el componente.
+ *
+ * Las capas de tiles se reexportan desde `@allride/geo-core`, donde viven
+ * para que la carga masiva use exactamente las mismas sin duplicarlas. El
+ * marcador sí vive acá: es identidad de marca, no configuración de proveedor.
  */
 
-export interface TileConfig {
-  url: string;
-  attribution: string;
-  maxZoom?: number;
-  subdomains?: string;
-  /**
-   * Píxeles CSS que ocupa cada tile. Subirlo a 512 junto con
-   * `zoomOffset: -1` agranda calles y nombres al doble, a costa de algo de
-   * detalle: útil cuando el basemap trae etiquetas muy chicas.
-   */
-  tileSize?: number;
-  zoomOffset?: number;
-  /**
-   * NO activar junto con `{r}` en la URL: `{r}` ya pide tiles @2x en
-   * pantallas densas por su cuenta, y `detectRetina` además baja el tile a
-   * 128px y trae contenido de un zoom más profundo. Los dos juntos reducen
-   * el contenido 4x y dejan los nombres de calle ilegibles.
-   */
-  detectRetina?: boolean;
-}
-
-/**
- * Presets de estilo de mapa.
- *
- * - `osm`: el estándar de OpenStreetMap. Gratis y sin condiciones más allá
- *   de la atribución, pero cargado de POIs (farmacias, bancos, comercios)
- *   que no aportan nada al confirmar una dirección y compiten con el pin.
- * - `carto-positron`: el más limpio. Gris claro, casi sin íconos de POI,
- *   calles y nombres legibles. La mejor opción para que el pin sea lo
- *   único que destaque.
- * - `carto-voyager`: moderno y con algo más de color y contexto (parques,
- *   áreas), manteniéndose mucho más limpio que el estándar.
- * - `carto-dark`: equivalente oscuro, para interfaces en modo oscuro.
- *
- * Los estilos CARTO son gratuitos con atribución bajo uso razonable; para
- * volumen de producción conviene revisar sus términos y considerar un plan
- * pagado, otro proveedor con key (Stadia, MapTiler) o tiles propias.
- */
-export type TileThemeName =
-  | "osm"
-  | "carto-positron"
-  | "carto-positron-xl"
-  | "carto-voyager"
-  | "carto-dark";
-
-const OSM_ATTRIBUTION =
-  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-const CARTO_ATTRIBUTION = `${OSM_ATTRIBUTION} © <a href="https://carto.com/attributions">CARTO</a>`;
-
-export const TILE_THEMES: Record<TileThemeName, TileConfig> = {
-  osm: {
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: OSM_ATTRIBUTION,
-    maxZoom: 19,
-  },
-  "carto-positron": {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  /**
-   * Positron con todo dibujado al doble: se piden tiles de un zoom más
-   * lejano y se muestran al doble de tamaño, así calles y nombres crecen
-   * 2x. Se pierde detalle fino y en pantallas densas se ve algo menos
-   * nítido — es el intercambio inevitable con tiles raster. Útil para
-   * público mayor o pantallas chicas.
-   */
-  "carto-positron-xl": {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-    tileSize: 512,
-    zoomOffset: -1,
-  },
-  "carto-voyager": {
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  "carto-dark": {
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-};
+export { TILE_THEMES, type TileConfig, type TileThemeName } from "@allride/geo-core";
 
 /**
  * Trazado de la "manita" del logo de AllRide, tal como viene del SVG de

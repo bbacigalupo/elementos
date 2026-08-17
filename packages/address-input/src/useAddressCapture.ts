@@ -93,7 +93,33 @@ export interface AddressCaptureConfig {
    * cerca que el centro de la ciudad.
    */
   anchor?: { lat: number; lng: number } | null;
+  /**
+   * Texto con el que arranca el campo de búsqueda. Sirve para corregir una
+   * dirección ya escrita —el caso de la carga masiva, donde la persona
+   * revisa lo que el geocoder resolvió mal— sin obligarla a reescribirla.
+   *
+   * Dispara la búsqueda de sugerencias al montar, como si la persona
+   * hubiera escrito ese texto. Es deseable en la corrección: el lote usó
+   * `geocode`, que devuelve un solo mejor resultado, y acá se ve la lista
+   * de candidatos que ese único resultado escondía.
+   */
+  initialQuery?: string;
   initialValue?: LocationValue | null;
+  /**
+   * Punto de partida **ya en la pantalla de confirmación**, con el pin
+   * puesto y ajustable.
+   *
+   * Distinto de `initialValue`, que da la captura por terminada. Este es
+   * para revisar un resultado que existe pero no es seguro: el caso de la
+   * carga masiva, donde el geocoder encontró algo y lo que falta es que una
+   * persona mire el mapa y confirme o corrija el pin.
+   *
+   * Abrir ahí y no en el buscador importa: cuando ya hay un punto
+   * candidato, la tarea es verificarlo, no volver a escribir la dirección
+   * desde cero. En pruebas con direcciones reales, dos de cada tres
+   * inciertas se resolvían con un solo clic de confirmación.
+   */
+  initialCandidate?: LocationValue | null;
   onChange?: (value: LocationValue | null) => void;
   onMetrics?: (metrics: CaptureMetrics) => void;
 }
@@ -225,14 +251,18 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
   const adminAreaRequired = Boolean(config.adminAreas?.required);
   const adminAreaLabel = config.adminAreas?.label ?? "Comuna";
 
-  const [phase, setPhase] = useState<CapturePhase>(config.initialValue ? "confirmed" : "idle");
+  const [phase, setPhase] = useState<CapturePhase>(
+    config.initialValue ? "confirmed" : config.initialCandidate ? "confirming" : "idle",
+  );
   const [value, setValue] = useState<LocationValue | null>(config.initialValue ?? null);
-  const [query, setQueryState] = useState("");
+  const [query, setQueryState] = useState(config.initialQuery ?? "");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [suggesting, setSuggesting] = useState(false);
   const [suggested, setSuggested] = useState(false);
   const [matchQuality, setMatchQuality] = useState<MatchAssessment | null>(null);
-  const [candidate, setCandidate] = useState<LocationValue | null>(config.initialValue ?? null);
+  const [candidate, setCandidate] = useState<LocationValue | null>(
+    config.initialValue ?? config.initialCandidate ?? null,
+  );
   const [matchedLevel, setMatchedLevel] = useState<MatchedLevel | null>(null);
   const [reverseBusy, setReverseBusy] = useState(false);
   const [farPending, setFarPending] = useState(false);
@@ -287,7 +317,7 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       if (!adminArea) return v;
       // Si el punto está en otra división administrativa, la etiqueta debe
       // describir dónde está el pin de verdad: pisarla produciría una
-      // dirección inexistente ("Alicante 937, Providencia"). La UI avisa y
+      // dirección inexistente ("Moneda 1025, Providencia"). La UI avisa y
       // la persona corrige el pin o la comuna.
       if (!adminAreaMatches(v, adminArea)) return v;
       const components = {

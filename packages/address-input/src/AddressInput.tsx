@@ -347,7 +347,7 @@ export function AddressInput({
                             }}
                           >
                             {/* Resaltar lo que coincide hace evidente lo que
-                                no: "Las Perdices" vs "Las Raíces". */}
+                                no: "Av. Grecia Norte" vs "Av. Grecia". */}
                             <span className="ari-suggestion-label">
                               <Highlight text={s.label} query={query} />
                             </span>

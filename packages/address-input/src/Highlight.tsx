@@ -5,7 +5,7 @@ import { normalizeTokens } from "@allride/geo-core";
  * Resalta en la sugerencia las palabras que calzan con lo escrito.
  *
  * El objetivo no es adornar: al pintar lo que sí coincide, lo que queda sin
- * pintar delata la diferencia — "Las **Perdices**" vs "Las **Raíces**" se
+ * pintar delata la diferencia — "Av. **Bilbao**" vs "Av. **Grecia**" se
  * distinguen de un vistazo aunque compartan el "Las".
  *
  * Usa la misma normalización y el mismo match por prefijo que el criterio
