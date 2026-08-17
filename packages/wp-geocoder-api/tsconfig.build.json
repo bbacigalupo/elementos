@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": ".",
+    "rootDir": "."
+  },
+  "files": ["lib/handlers.ts"]
+}

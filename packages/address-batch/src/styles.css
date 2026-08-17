@@ -51,6 +51,10 @@
   font-weight: 700;
 }
 
+.arb-field {
+  margin-bottom: 1rem;
+}
+
 .arb-help {
   margin: 0 0 0.5rem;
   font-size: 0.875rem;
@@ -676,6 +680,18 @@
 /* ---------- diálogo de corrección ---------- */
 
 .arb-dialog {
+  /*
+   * El centrado de un <dialog> modal es, por defecto, cosa de la hoja de
+   * estilos del navegador: `position: fixed; inset: 0; margin: auto`. Un
+   * reset global del sitio que lo aloja (`* { margin: 0 }`, común en temas
+   * de WordPress) pisa ese `margin: auto` y el diálogo queda pegado a la
+   * esquina superior izquierda en vez de centrado — encontrado en el sitio
+   * real, no en el playground, que no trae un reset así. Se declara acá
+   * explícito para no depender de que la página que lo aloja no interfiera.
+   */
+  position: fixed;
+  inset: 0;
+  margin: auto;
   padding: 0;
   border: none;
   border-radius: var(--arb-radius);
@@ -817,6 +833,15 @@
 .arb-dialog-load {
   height: fit-content;
   max-height: calc(100dvh - 2rem);
+}
+
+/* ---------- diálogo de confirmación (empezar de nuevo) ---------- */
+
+/* Mismo motivo que `.arb-dialog-load`: es texto corto, no tiene por qué
+   ocupar el ancho/alto grandes pensados para el corrector. */
+.arb-dialog-confirm {
+  width: min(26rem, calc(100vw - 2rem));
+  height: fit-content;
 }
 
 .arb-drop-target {

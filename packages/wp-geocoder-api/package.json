@@ -1,0 +1,14 @@
+{
+  "name": "@allride/wp-geocoder-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend de geocodificación para el shortcode de WordPress: createGeoHandlers de geo-core montado como funciones Edge de Vercel.",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@allride/geo-core": "^0.8.0"
+  }
+}

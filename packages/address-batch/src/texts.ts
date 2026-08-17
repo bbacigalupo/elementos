@@ -1,6 +1,8 @@
 /** Todos los textos visibles, sobreescribibles vía prop `texts`. */
 export interface BatchTexts {
   // entrada
+  countryPickerLabel: string;
+  countryPickerPlaceholder: string;
   inputLabel: string;
   inputHelp: string;
   placeholder: string;
@@ -90,6 +92,10 @@ export interface BatchTexts {
   rowPending: string;
   back: string;
   startOver: string;
+  startOverConfirmTitle: string;
+  startOverConfirmBody: string;
+  startOverConfirmAction: string;
+  startOverConfirmCancel: string;
 
   // tabla
   filterAll: string;
@@ -152,6 +158,8 @@ export interface BatchTexts {
 }
 
 export const DEFAULT_BATCH_TEXTS: BatchTexts = {
+  countryPickerLabel: "País",
+  countryPickerPlaceholder: "Elige un país",
   inputLabel: "Direcciones",
   inputHelp:
     "Una dirección por línea. También puedes pegar celdas copiadas directamente de Excel.",
@@ -277,6 +285,14 @@ export const DEFAULT_BATCH_TEXTS: BatchTexts = {
   rowPending: "Sin procesar",
   back: "Volver a las direcciones",
   startOver: "Empezar de nuevo",
+  startOverConfirmTitle: "¿Empezar de nuevo?",
+  // No alcanza con decir "se pierde el progreso": quien corrigió filas a
+  // mano necesita saber explícitamente que ESO también se borra, porque no
+  // se lee como "progreso" sino como trabajo ya terminado.
+  startOverConfirmBody:
+    "Se perderá todo el avance de este lote, incluidas las correcciones que hayas hecho a mano. No se puede deshacer.",
+  startOverConfirmAction: "Sí, empezar de nuevo",
+  startOverConfirmCancel: "Cancelar",
 
   filterAll: "Todas",
   // El resumen no es decorativo: cada número lleva a las filas que lo

@@ -12,6 +12,7 @@ import {
 } from "@allride/geo-core";
 import { BatchResults } from "./BatchResults.tsx";
 import { BatchExport, type ExportFormatOptions } from "./BatchExport.tsx";
+import { countryOptions } from "./countries.ts";
 import { DEFAULT_BATCH_TEXTS, fill, humanDuration, type BatchTexts } from "./texts.ts";
 import { useBatchGeocode, type BatchGeocodeConfig } from "./useBatchGeocode.ts";
 import { snapshotResultsForExport } from "./snapshot.ts";
@@ -58,6 +59,18 @@ export interface AddressBatchProps extends BatchGeocodeConfig {
   readLimit?: number;
   /** Formatos de salida, o `false` para no ofrecer exportación. */
   export?: ExportFormatOptions | false;
+  /**
+   * Pide el país a quien usa la herramienta en vez de darlo por sentado con
+   * `bias.country`. **Sin default a propósito**: una herramienta pública que
+   * puede llegar a gente de cualquier país no debe asumir uno y dar
+   * resultados degradados en silencio para quien no es de ese país — mejor
+   * obligar a elegir. `bias.country` se ignora mientras esto está activo (el
+   * resto de `bias` — centro, radio, idioma — sí se respeta).
+   */
+  countryPicker?: {
+    /** Códigos ISO-3166-1 alpha-2 a ofrecer. Sin valor, se ofrecen todos. */
+    codes?: readonly string[];
+  } | false;
   /** Reemplaza por completo la fase de resultados. */
   renderResults?: (batch: ReturnType<typeof useBatchGeocode>) => ReactNode;
 }
@@ -77,12 +90,16 @@ export function AddressBatch({
   map,
   readLimit,
   export: exportable,
+  countryPicker,
   renderResults,
   ...config
 }: AddressBatchProps) {
-  const batch = useBatchGeocode(config);
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const effectiveBias = countryPicker ? { ...config.bias, country: selectedCountry } : config.bias;
+  const batch = useBatchGeocode({ ...config, bias: effectiveBias });
   const texts: BatchTexts = { ...DEFAULT_BATCH_TEXTS, ...textsOverride };
   const textareaId = useId();
+  const countrySelectId = useId();
   const [fileError, setFileError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [reading, setReading] = useState(false);
@@ -90,11 +107,17 @@ export function AddressBatch({
   const [sheets, setSheets] = useState<{ fileName: string; list: WorkbookSheet[] } | null>(null);
   const [truncated, setTruncated] = useState(0);
   const [loadOpen, setLoadOpen] = useState(false);
+  const [confirmingStartOver, setConfirmingStartOver] = useState(false);
+  const countries = useMemo(
+    () => (countryPicker ? countryOptions(countryPicker.codes) : []),
+    [countryPicker],
+  );
 
   const { phase, stats } = batch;
   const hasAddress =
     batch.parsed.kind !== "table" || batch.mapping.some((r) => r === "address" || r === "street");
-  const canStart = stats.total > 0 && hasAddress;
+  const hasCountry = !countryPicker || selectedCountry !== "";
+  const canStart = stats.total > 0 && hasAddress && hasCountry;
   const resumableExportRows = useMemo(
     () => (batch.resumable ? snapshotResultsForExport(batch.resumable) : null),
     [batch.resumable],
@@ -205,11 +228,25 @@ export function AddressBatch({
                 <button type="button" className="arb-button arb-button-ghost" onClick={batch.backToInput}>
                   {texts.back}
                 </button>
-                <button type="button" className="arb-button arb-button-ghost" onClick={batch.reset}>
+                <button
+                  type="button"
+                  className="arb-button arb-button-ghost"
+                  onClick={() => setConfirmingStartOver(true)}
+                >
                   {texts.startOver}
                 </button>
               </div>
             )}
+          />
+        )}
+        {confirmingStartOver && (
+          <StartOverConfirm
+            texts={texts}
+            onCancel={() => setConfirmingStartOver(false)}
+            onConfirm={() => {
+              setConfirmingStartOver(false);
+              batch.reset();
+            }}
           />
         )}
       </div>
@@ -218,6 +255,28 @@ export function AddressBatch({
 
   return (
     <div className={`arb-root ${className ?? ""}`}>
+      {countryPicker && (
+        <div className="arb-field">
+          <label className="arb-label" htmlFor={countrySelectId}>
+            {texts.countryPickerLabel}
+          </label>
+          <select
+            id={countrySelectId}
+            className="arb-select"
+            value={selectedCountry}
+            onChange={(e) => setSelectedCountry(e.target.value)}
+          >
+            <option value="" disabled>
+              {texts.countryPickerPlaceholder}
+            </option>
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {batch.resumable && (
         <section className="arb-panel arb-resume">
           <h3 className="arb-panel-title">{texts.resumeTitle}</h3>
@@ -875,6 +934,70 @@ function LoadDialog({
             </li>
           </ul>
         </section>
+      </div>
+    </dialog>
+  );
+}
+
+/**
+ * Confirmación antes de "Empezar de nuevo": esa acción borra el lote
+ * completo, incluidas las correcciones que ya se hicieron a mano, sin
+ * posibilidad de deshacer — un clic de más ahí es caro. El botón seguro
+ * (Cancelar) queda como el primario/con foco por defecto, y el destructivo
+ * como ghost — mismo criterio que ya usa el par Retomar/Descartar del lote
+ * a medias, no uno inventado para acá.
+ */
+function StartOverConfirm({
+  texts,
+  onCancel,
+  onConfirm,
+}: {
+  texts: BatchTexts;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const cancelRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog?.isConnected && !dialog.open) dialog.showModal();
+    cancelRef.current?.focus();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="arb-dialog arb-dialog-confirm"
+      aria-labelledby="arb-start-over-title"
+      onClose={onCancel}
+      onClick={(event) => {
+        if (event.target === dialogRef.current) dialogRef.current?.close();
+      }}
+    >
+      <div className="arb-dialog-body">
+        <div className="arb-dialog-head">
+          <h3 className="arb-panel-title" id="arb-start-over-title">
+            {texts.startOverConfirmTitle}
+          </h3>
+          <button
+            type="button"
+            className="arb-dialog-close"
+            aria-label={texts.startOverConfirmCancel}
+            onClick={() => dialogRef.current?.close()}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <p className="arb-help">{texts.startOverConfirmBody}</p>
+        <div className="arb-actions">
+          <button ref={cancelRef} type="button" className="arb-button arb-button-primary" onClick={onCancel}>
+            {texts.startOverConfirmCancel}
+          </button>
+          <button type="button" className="arb-button arb-button-ghost" onClick={onConfirm}>
+            {texts.startOverConfirmAction}
+          </button>
+        </div>
       </div>
     </dialog>
   );

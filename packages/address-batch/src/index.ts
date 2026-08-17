@@ -1,4 +1,5 @@
 export { AddressBatch, type AddressBatchProps } from "./AddressBatch.tsx";
+export { countryOptions, type CountryOption } from "./countries.ts";
 export { BatchResults, type BatchResultsProps } from "./BatchResults.tsx";
 export { BatchExport, type BatchExportProps, type ExportFormatOptions } from "./BatchExport.tsx";
 export {
