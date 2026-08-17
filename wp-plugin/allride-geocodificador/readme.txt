@@ -4,7 +4,7 @@ Tags: geocoding, direcciones, gps, coordenadas
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: UNLICENSED
 
 Convierte muchas direcciones a coordenadas GPS a la vez, separando lo que se
@@ -33,6 +33,15 @@ clave del proveedor de direcciones).
    herramienta.
 
 == Changelog ==
+
+= 1.1.0 =
+* El país ya no viene fijo: selector obligatorio en la herramienta, sin
+  default (evita degradar en silencio direcciones de fuera de Chile).
+  Ajustes ya no tiene campo de país por defecto — dejó de aplicar.
+* Corregido: el modal de corrección se abría pegado a la esquina, no
+  centrado (lo rompía el reset de CSS del tema de WordPress).
+* "Empezar de nuevo" ahora pide confirmación antes de borrar el lote.
+* Ajustes muestra la versión instalada, para reportar errores más fácil.
 
 = 1.0.0 =
 Primera versión sobre el nuevo motor (@allride/address-batch).

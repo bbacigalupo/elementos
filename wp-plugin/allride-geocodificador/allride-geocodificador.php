@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AllRide Geocodificador
  * Description: Convierte direcciones a coordenadas GPS en lote. Shortcode [allride_geocodificador].
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: AllRide
  * Text Domain: allride-geocodificador
  *
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ALLRIDE_GEO_VERSION', '1.0.0' );
+define( 'ALLRIDE_GEO_VERSION', '1.1.0' );
 define( 'ALLRIDE_GEO_PLUGIN_FILE', __FILE__ );
 define( 'ALLRIDE_GEO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ALLRIDE_GEO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

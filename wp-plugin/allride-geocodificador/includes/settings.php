@@ -134,6 +134,18 @@ function allride_geo_render_settings_page() {
 	<div class="wrap">
 		<h1><?php esc_html_e( 'AllRide Geocodificador', 'allride-geocodificador' ); ?></h1>
 		<p><?php esc_html_e( 'Inserta el shortcode [allride_geocodificador] en cualquier página o entrada.', 'allride-geocodificador' ); ?></p>
+		<p>
+			<?php
+			// A propósito visible acá y no solo en la lista de Plugins: si
+			// alguien reporta un error, la versión que hay que pedirle está a
+			// un vistazo, sin que tenga que ir a buscarla a otro lado.
+			printf(
+				/* translators: %s: número de versión del plugin (ej. 1.1.0) */
+				esc_html__( 'Versión %s', 'allride-geocodificador' ),
+				esc_html( ALLRIDE_GEO_VERSION )
+			);
+			?>
+		</p>
 		<form action="options.php" method="post">
 			<?php
 			settings_fields( 'allride_geo_settings_group' );

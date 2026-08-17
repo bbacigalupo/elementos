@@ -27,6 +27,14 @@ cambio en `@allride/address-batch` o `@allride/geo-core` que deba llegar al
 sitio — el plugin no reconstruye nada por su cuenta, solo sirve archivos
 estáticos.
 
+## Subir la versión antes de empaquetar
+
+Cada cambio que vaya a producción sube `ALLRIDE_GEO_VERSION` en
+`allride-geocodificador.php` (dos lugares: la cabecera `Version:` y el
+`define`) y agrega una entrada en `== Changelog ==` de `readme.txt` — es lo
+que permite saber qué versión tiene instalada alguien que reporta un error
+(se ve en Ajustes → AllRide Geocodificador, sin ir a la lista de plugins).
+
 ## Empaquetar para subir a WordPress
 
 ```bash

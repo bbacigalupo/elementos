@@ -6,6 +6,8 @@ export interface BatchTexts {
   inputLabel: string;
   inputHelp: string;
   placeholder: string;
+  /** Placeholder cuando `countryPicker` está activo: sin un país fijo, un solo ejemplo (siempre chileno) confundiría más de lo que ayuda. */
+  placeholderMultiCountry: string;
   countOne: string;
   countMany: string;
   limitHint: string;
@@ -165,6 +167,11 @@ export const DEFAULT_BATCH_TEXTS: BatchTexts = {
     "Una dirección por línea. También puedes pegar celdas copiadas directamente de Excel.",
   placeholder:
     "Av. Providencia 1234, Providencia, Santiago\nAv. Grecia 3000, Ñuñoa, Santiago",
+  // Un ejemplo por país, no todos del mismo: sin país fijo, mostrar solo
+  // direcciones chilenas insinúa que la herramienta es solo para Chile —
+  // justo lo que el selector existe para evitar.
+  placeholderMultiCountry:
+    "Av. Providencia 1234, Providencia, Santiago (Chile)\nAv. Paseo de la Reforma 222, Ciudad de México (México)\nAv. Larco 345, Miraflores, Lima (Perú)",
   countOne: "1 dirección",
   countMany: "{n} direcciones",
   limitHint: "Máximo {max}",

@@ -342,7 +342,7 @@ export function AddressBatch({
             className="arb-textarea"
             value={batch.text}
             onChange={(e) => batch.setText(e.target.value)}
-            placeholder={texts.placeholder}
+            placeholder={countryPicker ? texts.placeholderMultiCountry : texts.placeholder}
             rows={8}
             spellCheck={false}
           />
