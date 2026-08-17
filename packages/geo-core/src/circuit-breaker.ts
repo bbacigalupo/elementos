@@ -1,3 +1,4 @@
+import { ProviderAuthError, ProviderRateLimitError } from "./fetch-retry.ts";
 import type { GeoProvider } from "./providers/types.ts";
 
 /**
@@ -78,6 +79,21 @@ export function withCircuitBreaker(
       // Cancelar no es un fallo del proveedor: pasa cada vez que alguien
       // sigue escribiendo y no debe contar para abrir el circuito.
       if (err instanceof DOMException && err.name === "AbortError") throw err;
+      /*
+       * Un 429 tampoco: es el proveedor respondiendo "más lento", no una
+       * caída. Contarlo acá tenía un efecto en cascada real (encontrado con
+       * un lote de 451 direcciones contra LocationIQ): al pasar el límite
+       * por minuto llegan varios 429 seguidos, el circuito se abría y desde
+       * ahí TODO salía como CircuitOpenError — un error genérico que
+       * escondía el 429 del motor de lote, cuyo manejo adaptativo de ritmo
+       * (throttle compartido, reintentos con espera) nunca alcanzaba a
+       * actuar. El lote terminaba detenido por "servicio caído" con el
+       * proveedor perfectamente sano. La credencial rechazada tampoco abre
+       * el circuito, por la razón inversa: debe llegar intacta al motor
+       * para que marque el trabajo como `failed` (revisar la clave), no
+       * como una caída transitoria que se reintenta sola.
+       */
+      if (err instanceof ProviderRateLimitError || err instanceof ProviderAuthError) throw err;
       registrarFallo();
       throw err;
     }

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { withCache } from "./cache.ts";
 import { withCircuitBreaker, CircuitOpenError } from "./circuit-breaker.ts";
+import { ProviderAuthError, ProviderRateLimitError } from "./fetch-retry.ts";
 import type { GeoProvider } from "./providers/types.ts";
 import type { GeoBias, LocationValue } from "./types.ts";
 
@@ -169,5 +170,42 @@ describe("withCircuitBreaker", () => {
       await expect(protegido.geocode("x", bias)).rejects.toThrow(/abort/i);
     }
     expect(alCambiar).not.toHaveBeenCalled();
+  });
+
+  /*
+   * El 429 es el proveedor pidiendo "más lento", no una caída. Si abriera el
+   * circuito, todo saldría como CircuitOpenError y el motor de lote —que
+   * maneja los 429 con su propio ritmo adaptativo— nunca vería la señal
+   * real: el lote entero terminaba detenido por "servicio caído" con el
+   * proveedor sano (encontrado con 451 direcciones reales contra LocationIQ,
+   * donde el corte llegaba siempre a la misma cantidad de consultas).
+   */
+  it("el límite de ritmo (429) no abre el circuito y llega intacto al que llama", async () => {
+    let llamadas = 0;
+    const { provider } = proveedorFalso({
+      async geocode() {
+        llamadas += 1;
+        throw new ProviderRateLimitError("falso");
+      },
+    });
+    const alCambiar = vi.fn();
+    const protegido = withCircuitBreaker(provider, { failureThreshold: 2, onStateChange: alCambiar });
+
+    for (let i = 0; i < 6; i++) {
+      // Siempre el error original, nunca CircuitOpenError.
+      await expect(protegido.geocode("x", bias)).rejects.toBeInstanceOf(ProviderRateLimitError);
+    }
+    expect(llamadas).toBe(6);
+    expect(alCambiar).not.toHaveBeenCalled();
+  });
+
+  it("la credencial rechazada tampoco lo abre: debe llegar como auth, no como caída", async () => {
+    const { provider } = proveedorFalso({
+      async geocode() { throw new ProviderAuthError("falso"); },
+    });
+    const protegido = withCircuitBreaker(provider, { failureThreshold: 2 });
+    for (let i = 0; i < 4; i++) {
+      await expect(protegido.geocode("x", bias)).rejects.toBeInstanceOf(ProviderAuthError);
+    }
   });
 });
