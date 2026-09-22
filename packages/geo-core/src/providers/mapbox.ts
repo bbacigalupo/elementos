@@ -230,6 +230,22 @@ export function createMapboxProvider(config: MapboxConfig): GeoProvider {
       // autocomplete:false busca coincidencia completa en vez de prefijo —
       // es el equivalente de "un solo mejor resultado" que ya usan los
       // demás proveedores en `geocode()`.
+      //
+      // PENDIENTE (anotado, no una tarea activa — optimizador de rutas,
+      // §11, 2026-09-22): `limit: "1"` toma el primer candidato de Mapbox a
+      // ciegas, incluso con `bias.center` configurado. Probado con un caso
+      // real: pedir "Los Aromos & Diego Portales" con proximity en
+      // Santiago SÍ trae "Los Aromos, Estación Central" entre los
+      // candidatos (confirmado pidiendo varios), pero como acá solo se
+      // pide 1, Mapbox devuelve su candidato de mejor texto ("Diego
+      // Portales", en Copiapó, a 800 km) y nunca llegamos a ver el bueno.
+      // `bias.center`/`radiusKm` hoy solo sirven para re-rankear DENTRO de
+      // lo que ya devolvió el proveedor (vía `classifyResult` → `far_from_bias`,
+      // después de la consulta) — no para influir en qué candidato se pide.
+      // El arreglo de verdad: pedir varios (`limit` más alto) cuando hay
+      // `bias.center`, y preferir el más cercano entre los de relevancia
+      // comparable, en vez del primero sin más. `photon.ts` y
+      // `locationiq.ts` tienen exactamente el mismo patrón (`limit`/`1` fijo).
       const features = await mbFetch(
         "forward",
         { q: queryText(query, opts), autocomplete: "false", limit: "1", ...biasParams(bias) },
