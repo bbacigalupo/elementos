@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import {
   buildMarkerHtml,
+  ensureLabelsPane,
   getMarkerAnchor,
   getMarkerSize,
+  overlayLayerOptions,
   TILE_THEMES,
   type MarkerConfig,
   type TileConfig,
@@ -64,6 +66,7 @@ export function ConfirmMap({
   const markerRef = useRef<MarkerInstance | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
   const tileLayerRef = useRef<import("leaflet").TileLayer | null>(null);
+  const labelsLayerRef = useRef<import("leaflet").TileLayer | null>(null);
   const onMoveRef = useRef(onMove);
   onMoveRef.current = onMove;
   const onStatusRef = useRef(onStatus);
@@ -112,6 +115,12 @@ export function ConfirmMap({
           onStatusRef.current?.("ready");
         }
       });
+      if (tileConfig.overlay) {
+        ensureLabelsPane(map);
+        labelsLayerRef.current = leaflet
+          .tileLayer(tileConfig.overlay.url, overlayLayerOptions(tileConfig.overlay))
+          .addTo(map);
+      }
 
       // Ícono SVG inline: el default de Leaflet depende de imágenes cuya
       // ruta los bundlers resuelven mal (problema clásico y evitable), y
@@ -177,6 +186,12 @@ export function ConfirmMap({
         ...(config.detectRetina ? { detectRetina: true } : {}),
       })
       .addTo(map);
+    labelsLayerRef.current?.remove();
+    labelsLayerRef.current = null;
+    if (config.overlay) {
+      ensureLabelsPane(map);
+      labelsLayerRef.current = leaflet.tileLayer(config.overlay.url, overlayLayerOptions(config.overlay)).addTo(map);
+    }
   }, [tileTheme, tiles]);
 
   const markerJson = JSON.stringify(markerConfig ?? {});

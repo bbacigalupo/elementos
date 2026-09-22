@@ -84,7 +84,7 @@ ingresar coordenadas / link de Google Maps ─────────┘    arr
 |---|---|---|
 | `carto-positron` | Gris claro, casi sin íconos de POI | **Default.** El más limpio: nada compite con el pin |
 | `carto-positron-xl` | Igual, con calles y nombres al doble | Menos detalle y algo menos nítido en pantallas densas |
-| `carto-voyager` | Moderno, con color y contexto (parques, áreas) | Bastante más limpio que el estándar |
+| `carto-voyager` | Igual a `carto-positron` (ver nota) | Antes era una variante con más color |
 | `carto-dark` | Equivalente oscuro | Para interfaces en modo oscuro |
 | `osm` | Estándar de OpenStreetMap | Cargado de POIs (farmacias, bancos, comercios) |
 
@@ -93,12 +93,20 @@ ingresar coordenadas / link de Google Maps ─────────┘    arr
 > traiga contenido de un zoom más profundo: los dos mecanismos se apilan, el contenido se
 > reduce 4× en vez de 2× y los nombres de calle quedan ilegibles. Los presets no lo usan.
 
-**Todos los presets son gratuitos y sin API key.** Los estilos CARTO solo piden atribución
-(ya incluida en cada preset): no hay registro, cuenta ni costo. Se comprobó que las
-alternativas "más limpias" que circulan no cumplen: Stadia Maps responde 401 sin key y Esri
-restringe el uso comercial. Si en algún momento CARTO cambiara sus condiciones o hiciera
-falta blindar el volumen, `map.tiles` acepta cualquier capa propia
-(`{ url, attribution, subdomains, maxZoom, detectRetina }`) y el cambio es de una línea.
+**Los nombres `carto-*` quedan por compatibilidad, pero desde el 22 sept 2026 sirven tiles
+de Esri, no de CARTO.** CARTO cortó el acceso anónimo a sus basemaps (verificado con `curl`:
+las cuatro URLs responden 200 con un tile idéntico de "API KEY REQUIRED", sin importar la
+que se pida ni el `Referer` — no es una cuota de AllRide, es que ya no hay tier gratis sin
+cuenta). Se reemplazó por **Esri World Light/Dark Gray Canvas** (mismo basemap que ya usa el
+optimizador de rutas en producción), que sigue sin pedir clave. A diferencia de CARTO, Esri
+sirve el fondo gris y las etiquetas de calle como dos servicios de tiles separados —
+`TileConfig.overlay` (con `ensureLabelsPane()`/`overlayLayerOptions()` para dibujarlo) — así
+que un `map.tiles` propio que solo defina `{ url, attribution, ... }` sin `overlay` se ve
+sin nombres de calle si el basemap elegido los separa así. No hay equivalente gratis y sin
+clave para el look más colorido que tenía `carto-voyager`; queda igual a `carto-positron`
+hasta pagar un proveedor con clave (Stadia, MapTiler, o Mapbox — ya integrado para geocoding
+en `providers/mapbox.ts`, no para tiles). Volumen alto de un basemap de Esri sin cuenta
+puede eventualmente pedir revisar sus términos, igual que se advertía antes para CARTO.
 
 **Marcador** (`map.marker`): por defecto es el **pin de marca AllRide** — cuerpo celeste con
 la manita del logo sobre disco blanco, borde blanco (lo que lo mantiene legible sobre mapa

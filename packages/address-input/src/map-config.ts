@@ -9,7 +9,14 @@
  * marcador sí vive acá: es identidad de marca, no configuración de proveedor.
  */
 
-export { TILE_THEMES, type TileConfig, type TileThemeName } from "@bbacigalupo/geo-core";
+export {
+  TILE_THEMES,
+  ensureLabelsPane,
+  overlayLayerOptions,
+  type TileConfig,
+  type TileOverlay,
+  type TileThemeName,
+} from "@bbacigalupo/geo-core";
 
 /**
  * Trazado de la "manita" del logo de AllRide, tal como viene del SVG de

@@ -30,6 +30,22 @@ export interface TileConfig {
    * el contenido 4x y dejan los nombres de calle ilegibles.
    */
   detectRetina?: boolean;
+  /**
+   * Capa extra de calles/nombres dibujada ENCIMA de `url`, sin capturar
+   * clics — para basemaps como Esri Light/Dark Gray Canvas, que sirven el
+   * fondo gris y las etiquetas como dos servicios de tiles separados (a
+   * diferencia de CARTO, que los combina en un solo tile). Quien consuma
+   * `TileConfig` necesita crear un pane propio para esto — ver
+   * `LABELS_PANE`/`LABELS_PANE_Z_INDEX` y `overlayLayerOptions()`.
+   */
+  overlay?: TileOverlay;
+}
+
+export interface TileOverlay {
+  url: string;
+  maxZoom?: number;
+  tileSize?: number;
+  zoomOffset?: number;
 }
 
 /**
@@ -41,13 +57,25 @@ export interface TileConfig {
  * - `carto-positron`: el más limpio. Gris claro, casi sin íconos de POI,
  *   calles y nombres legibles. La mejor opción para que el pin sea lo
  *   único que destaque.
- * - `carto-voyager`: moderno y con algo más de color y contexto (parques,
- *   áreas), manteniéndose mucho más limpio que el estándar.
+ * - `carto-voyager`: alias de `carto-positron` (ver nota de abajo) —
+ *   antes era una variante con más color, hoy renderiza igual.
  * - `carto-dark`: equivalente oscuro, para interfaces en modo oscuro.
  *
- * Los estilos CARTO son gratuitos con atribución bajo uso razonable; para
- * volumen de producción conviene revisar sus términos y considerar un plan
- * pagado, otro proveedor con key (Stadia, MapTiler) o tiles propias.
+ * **Los nombres se mantienen por compatibilidad, pero desde el 22 sept
+ * 2026 NINGUNO de los cuatro sirve tiles de CARTO.** CARTO cortó el acceso
+ * anónimo/sin clave a sus basemaps (verificado con `curl`: las cuatro URLs
+ * `*.basemaps.cartocdn.com` devuelven 200 con un tile idéntico de 1718
+ * bytes que dice "API KEY REQUIRED", sin importar la URL pedida ni el
+ * `Referer` — no es una cuota agotada de AllRide, es que ya no hay tier
+ * gratis sin cuenta). Se reemplazó por Esri World Light/Dark Gray Canvas
+ * (`server.arcgisonline.com`), que sigue sin pedir clave y tiene el mismo
+ * espíritu "gris limpio, casi sin POIs" — mismo basemap que ya se usa en
+ * el optimizador de rutas. A diferencia de CARTO, Esri sirve el fondo y
+ * las etiquetas como dos capas separadas (`overlay` en `TileConfig`); no
+ * hay equivalente gratis y sin clave para el look más colorido de
+ * `carto-voyager`, así que queda igual a `carto-positron` hasta que se
+ * pague un proveedor con clave (Stadia, MapTiler, Mapbox — ya integrado
+ * en `providers/mapbox.ts` para geocoding, no para tiles).
  */
 export type TileThemeName =
   | "osm"
@@ -58,7 +86,27 @@ export type TileThemeName =
 
 const OSM_ATTRIBUTION =
   '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-const CARTO_ATTRIBUTION = `${OSM_ATTRIBUTION} © <a href="https://carto.com/attributions">CARTO</a>`;
+const ESRI_ATTRIBUTION = "Tiles © Esri, HERE, Garmin, © OpenStreetMap contributors";
+
+const ESRI_LIGHT_GRAY: TileConfig = {
+  url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+  attribution: ESRI_ATTRIBUTION,
+  maxZoom: 16,
+  overlay: {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    maxZoom: 16,
+  },
+};
+
+const ESRI_DARK_GRAY: TileConfig = {
+  url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+  attribution: ESRI_ATTRIBUTION,
+  maxZoom: 16,
+  overlay: {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    maxZoom: 16,
+  },
+};
 
 export const TILE_THEMES: Record<TileThemeName, TileConfig> = {
   osm: {
@@ -66,39 +114,18 @@ export const TILE_THEMES: Record<TileThemeName, TileConfig> = {
     attribution: OSM_ATTRIBUTION,
     maxZoom: 19,
   },
-  "carto-positron": {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
+  "carto-positron": ESRI_LIGHT_GRAY,
   /**
    * Positron con todo dibujado al doble: se piden tiles de un zoom más
    * lejano y se muestran al doble de tamaño, así calles y nombres crecen
    * 2x. Se pierde detalle fino y en pantallas densas se ve algo menos
    * nítido — es el intercambio inevitable con tiles raster. Útil para
-   * público mayor o pantallas chicas.
+   * público mayor o pantallas chicas. El truco (`tileSize`/`zoomOffset`)
+   * es puramente de Leaflet — funciona igual sobre Esri que sobre CARTO.
    */
-  "carto-positron-xl": {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-    tileSize: 512,
-    zoomOffset: -1,
-  },
-  "carto-voyager": {
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  "carto-dark": {
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attribution: CARTO_ATTRIBUTION,
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
+  "carto-positron-xl": { ...ESRI_LIGHT_GRAY, tileSize: 512, zoomOffset: -1 },
+  "carto-voyager": ESRI_LIGHT_GRAY,
+  "carto-dark": ESRI_DARK_GRAY,
 };
 
 /** Opciones de capa listas para pasarle a Leaflet, sin claves indefinidas. */
@@ -111,6 +138,41 @@ export function tileLayerOptions(config: TileConfig): Record<string, unknown> {
     ...(config.zoomOffset != null ? { zoomOffset: config.zoomOffset } : {}),
     ...(config.detectRetina ? { detectRetina: true } : {}),
   };
+}
+
+/** Pane de Leaflet para la capa `overlay` (etiquetas): por encima de los
+ * tiles base y de las polilíneas, por debajo de marcadores y popups, y sin
+ * capturar clics (es puro dibujo, tocar el mapa debe llegar al mapa). */
+export const LABELS_PANE = "ari-labels";
+export const LABELS_PANE_Z_INDEX = 450;
+
+/** Opciones de la capa `overlay`, listas para pasarle a Leaflet. */
+export function overlayLayerOptions(overlay: TileOverlay): Record<string, unknown> {
+  return {
+    pane: LABELS_PANE,
+    maxZoom: overlay.maxZoom ?? 19,
+    ...(overlay.tileSize ? { tileSize: overlay.tileSize } : {}),
+    ...(overlay.zoomOffset != null ? { zoomOffset: overlay.zoomOffset } : {}),
+  };
+}
+
+/**
+ * Forma mínima de `L.Map` que hace falta acá — tipado estructural a
+ * propósito, para no declarar `leaflet` como dependencia de este paquete
+ * (geo-core es de 0 dependencias) solo por un tipo. Cualquier instancia
+ * real de Leaflet la cumple sin cast.
+ */
+interface LeafletPaneHost {
+  getPane(name: string): { style: { zIndex: string; pointerEvents: string } } | undefined;
+  createPane(name: string): { style: { zIndex: string; pointerEvents: string } };
+}
+
+/** Crea el pane de etiquetas si el mapa todavía no lo tiene. Idempotente. */
+export function ensureLabelsPane(map: LeafletPaneHost): void {
+  if (map.getPane(LABELS_PANE)) return;
+  const pane = map.createPane(LABELS_PANE);
+  pane.style.zIndex = String(LABELS_PANE_Z_INDEX);
+  pane.style.pointerEvents = "none";
 }
 
 /** Encuadre que contiene todos los puntos, con un margen mínimo cuando es uno solo. */

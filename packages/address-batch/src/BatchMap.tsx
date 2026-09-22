@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import {
   TILE_THEMES,
   boundsFor,
+  ensureLabelsPane,
+  overlayLayerOptions,
   tileLayerOptions,
   type BatchResultRow,
   type BatchStatus,
@@ -171,6 +173,10 @@ export function BatchMap({
 
       const config = tiles ?? TILE_THEMES[tileTheme] ?? TILE_THEMES.osm;
       leaflet.tileLayer(config.url, tileLayerOptions(config)).addTo(map);
+      if (config.overlay) {
+        ensureLabelsPane(map);
+        leaflet.tileLayer(config.overlay.url, overlayLayerOptions(config.overlay)).addTo(map);
+      }
 
       mapRef.current = map;
 
