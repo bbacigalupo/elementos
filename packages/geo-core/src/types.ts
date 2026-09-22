@@ -11,7 +11,8 @@ export type Precision =
   | "rooftop" // dirección exacta (calle + número)
   | "street" // la calle, sin número exacto
   | "zone" // centro de comuna/ciudad/zona
-  | "exact"; // coordenadas ingresadas directamente por la persona
+  | "exact" // coordenadas ingresadas directamente por la persona
+  | "interpolated"; // Mapbox estimó la altura entre dos números conocidos de la misma calle
 
 /** Cómo se originó el punto. */
 export type LocationSource = "autocomplete" | "search" | "pin" | "gps" | "coords";
@@ -84,7 +85,7 @@ export interface AdminAreaOption {
  * ingresadas a mano cuentan como máxima precisión: quien las escribe está
  * declarando un punto exacto a propósito.
  */
-const PRECISION_RANK: Record<Precision, number> = { zone: 1, street: 2, rooftop: 3, exact: 3 };
+const PRECISION_RANK: Record<Precision, number> = { zone: 1, street: 2, interpolated: 3, rooftop: 4, exact: 4 };
 
 export function precisionMeets(actual: Precision, minimum: Precision): boolean {
   return PRECISION_RANK[actual] >= PRECISION_RANK[minimum];
