@@ -8,7 +8,7 @@ import {
   type Precision,
   type TileConfig,
   type TileThemeName,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import { BatchExport, type ExportFormatOptions } from "./BatchExport.tsx";
 import { DEFAULT_BATCH_TEXTS, fill, type BatchTexts } from "./texts.ts";
 import type { BatchGeocode } from "./useBatchGeocode.ts";
@@ -93,6 +93,8 @@ function precisionLabel(precision: Precision, texts: BatchTexts): string {
       return texts.precisionStreet;
     case "zone":
       return texts.precisionZone;
+    case "interpolated":
+      return texts.precisionInterpolated;
     default:
       return texts.precisionExact;
   }

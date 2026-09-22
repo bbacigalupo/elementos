@@ -25,7 +25,7 @@ import {
   type OutlierOptions,
   type ParsedInput,
   type QuotaStatus,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 
 /**
  * `useBatchGeocode` — máquina de estados completa del elemento masivo, sin

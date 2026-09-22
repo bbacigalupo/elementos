@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "cd ../.. && npm install",
-  "buildCommand": "cd ../.. && npm run build -w @allride/geo-core && npm run build -w @allride/wp-geocoder-api"
+  "buildCommand": "cd ../.. && npm run build -w @bbacigalupo/geo-core && npm run build -w @bbacigalupo/wp-geocoder-api"
 }

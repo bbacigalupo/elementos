@@ -2,7 +2,7 @@ import type {
   BatchResultRow,
   BatchSummary,
   GeoBias,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 
 /**
  * Tipos persistidos de la API de geocodificación masiva.
@@ -24,7 +24,7 @@ export type JobStatus =
   /**
    * Se detuvo solo a mitad de camino, y no por culpa del trabajo ni del
    * cliente: cuota diaria agotada con el proveedor, o el proveedor caído
-   * (ver `BatchStopReason` en `@allride/geo-core`). Las filas que
+   * (ver `BatchStopReason` en `@bbacigalupo/geo-core`). Las filas que
    * alcanzaron a procesarse quedan guardadas; las que no, en `pending`. Se
    * retoma solo — `leaseUntil` dice cuándo, y `claimNextJob` lo rescata
    * igual que a un trabajo `running` con el arriendo vencido.

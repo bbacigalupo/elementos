@@ -1,10 +1,18 @@
 {
-  "name": "@allride/address-input",
+  "name": "@bbacigalupo/address-input",
   "version": "0.8.0",
   "type": "module",
   "description": "Input reutilizable de captura de direcciones: autocompletado con fallback, pin en mapa, GPS y coordenadas manuales, siempre con confirmación visual.",
   "license": "UNLICENSED",
   "private": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bbacigalupo/elementos.git",
+    "directory": "packages/address-input"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -26,7 +34,7 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@allride/geo-core": "^0.8.0"
+    "@bbacigalupo/geo-core": "^0.9.0"
   },
   "peerDependencies": {
     "leaflet": "^1.9.0",

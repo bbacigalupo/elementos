@@ -1,4 +1,4 @@
-import type { BatchInputRow, BatchResultRow, BatchStatus, IssueCode, LocationValue, MatchedLevel } from "@allride/geo-core";
+import type { BatchInputRow, BatchResultRow, BatchStatus, IssueCode, LocationValue, MatchedLevel } from "@bbacigalupo/geo-core";
 
 /**
  * Instantánea de un lote en curso, para poder retomarlo.

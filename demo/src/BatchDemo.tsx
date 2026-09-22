@@ -5,8 +5,8 @@ import {
   httpClient,
   type BatchRunResult,
   type TileThemeName,
-} from "@allride/geo-core";
-import { AddressBatch } from "@allride/address-batch";
+} from "@bbacigalupo/geo-core";
+import { AddressBatch } from "@bbacigalupo/address-batch";
 import { ZONES } from "./zonas.ts";
 
 /**
@@ -111,7 +111,7 @@ export function BatchDemo() {
             value={transport}
             onChange={(e) => reiniciar(() => setTransport(e.target.value as Transport))}
           >
-            <option value="proxy">Proxy HTTP (/api/geo → Photon o LocationIQ)</option>
+            <option value="proxy">Proxy HTTP (/api/geo → según .env.local, ver terminal)</option>
             <option value="direct">Directo desde el navegador (Photon)</option>
           </select>
         </label>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { snapshotResultsForExport, type BatchSnapshot } from "./snapshot.ts";
-import type { BatchInputRow, BatchResultRow } from "@allride/geo-core";
+import type { BatchInputRow, BatchResultRow } from "@bbacigalupo/geo-core";
 
 function inputRow(id: string, index: number): BatchInputRow {
   return { id, index, raw: `Calle ${index} 100`, query: `Calle ${index} 100` };

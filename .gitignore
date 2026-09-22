@@ -15,7 +15,7 @@ demo/public/
 .vercel
 
 # Bundle de wp-embed copiado al plugin, y el .zip empaquetado para subir a
-# WordPress: son build output regenerable (npm run build -w @allride/wp-embed
+# WordPress: son build output regenerable (npm run build -w @bbacigalupo/wp-embed
 # + wp-plugin/README.md), mismo criterio que dist/ en el resto del repo.
 wp-plugin/*.zip
 wp-plugin/allride-geocodificador/assets/*.js

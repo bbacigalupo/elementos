@@ -1,7 +1,7 @@
-# @allride/wp-geocoder-api
+# @bbacigalupo/wp-geocoder-api
 
 Backend del shortcode de WordPress (`allride-geocodificador`): `createGeoHandlers`
-de `@allride/geo-core` montado como funciones Edge de Vercel. Esconde la clave
+de `@bbacigalupo/geo-core` montado como funciones Edge de Vercel. Esconde la clave
 de LocationIQ, aplica caché/cortacircuitos/rate limiting/cuota diaria — el
 navegador del sitio nunca ve la clave, solo llama a este backend.
 
@@ -28,7 +28,7 @@ para no repetir la vuelta:
    sirve si Vercel tiene acceso al monorepo COMPLETO para empezar. Si corres
    `vercel --prod` parado en `packages/wp-geocoder-api`, el CLI solo sube esa
    carpeta sola (8 archivos) y `npm install` nunca encuentra
-   `@allride/geo-core`. Hay que enlazar el proyecto también desde la raíz
+   `@bbacigalupo/geo-core`. Hay que enlazar el proyecto también desde la raíz
    (`vercel link --project wp-geocoder-api`, una vez) y desplegar desde ahí:
    ```bash
    cd elementos/            # raíz del monorepo, no packages/wp-geocoder-api

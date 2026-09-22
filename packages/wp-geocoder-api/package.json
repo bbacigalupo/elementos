@@ -1,5 +1,5 @@
 {
-  "name": "@allride/wp-geocoder-api",
+  "name": "@bbacigalupo/wp-geocoder-api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,6 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@allride/geo-core": "^0.8.0"
+    "@bbacigalupo/geo-core": "^0.8.0"
   }
 }

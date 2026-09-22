@@ -4,7 +4,7 @@ import { createCorrectionLink, type CorrectionLinkConfig } from "./correction-li
 import { createCorrectionHandlers, type CorrectionHandlers } from "./correction-handlers.ts";
 import type { WebhookConfig } from "./webhooks.ts";
 import type { BatchJob, StoredRow } from "./types.ts";
-import type { LocationValue } from "@allride/geo-core";
+import type { LocationValue } from "@bbacigalupo/geo-core";
 
 const AHORA = "2026-08-15T12:00:00.000Z";
 const BASE = "https://api.ejemplo.cl/v1/corrections";

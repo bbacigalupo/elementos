@@ -4,7 +4,7 @@ import {
   type ClassifyOptions,
   type GeoClient,
   type OutlierOptions,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import { generateId } from "./keys.ts";
 import type { BatchStore } from "./store.ts";
 import { toPublicJob, type BatchJob, type StoredRow } from "./types.ts";

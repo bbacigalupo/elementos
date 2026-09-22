@@ -9,7 +9,7 @@ import {
   type GeoClient,
   type OutlierOptions,
   type ParsedInput,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import { AUTH_ERROR_TEXT, authenticate, quotaStatus, type AuthContext } from "./auth.ts";
 import { createCorrectionLink, type CorrectionLinkConfig } from "./correction-links.ts";
 import { generateId } from "./keys.ts";
@@ -140,7 +140,7 @@ interface CreateBatchBody {
 }
 
 // Mismo encuadre que `quotaPreflight`/`overLimit` en
-// `@allride/address-batch/texts.ts`: el tope es del plan actual, no un
+// `@bbacigalupo/address-batch/texts.ts`: el tope es del plan actual, no un
 // error, y se ofrece contacto a ventas para ampliarlo — es el mismo límite
 // visto desde otro cliente, no un mensaje distinto inventado para la API.
 const TENANT_QUOTA_EXCEEDED_MESSAGE =

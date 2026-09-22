@@ -3,7 +3,7 @@
 ## `external-system-demo.mts`
 
 Demo end-to-end de un **sistema externo** hablando con
-`@allride/geo-batch-api` por HTTP de verdad — no por import directo, como
+`@bbacigalupo/geo-batch-api` por HTTP de verdad — no por import directo, como
 haría un ERP o un sistema de nóminas ajeno a este monorepo. Corre solo, sin
 proveedor de geocoding real ni clave de LocationIQ (usa un `GeoClient` de
 mentira con dos direcciones fijas), y ejercita en un solo recorrido los 9
@@ -17,7 +17,7 @@ clave de API la corrige por ese link → llega el webhook
 ```
 
 ```bash
-npm run example -w @allride/geo-batch-api
+npm run example -w @bbacigalupo/geo-batch-api
 # o, parado en packages/geo-batch-api:
 npx tsx examples/external-system-demo.mts
 ```

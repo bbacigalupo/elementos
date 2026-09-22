@@ -1,4 +1,4 @@
-import { createProvider, createGeoHandlers, createDailyQuota, type GeoHandlers } from "@allride/geo-core";
+import { createProvider, createGeoHandlers, createDailyQuota, type GeoHandlers } from "@bbacigalupo/geo-core";
 
 /**
  * Construcción única del backend, compartida entre `api/geo.ts` (la ruta

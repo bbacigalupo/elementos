@@ -7,10 +7,10 @@ forma independiente y se integra donde se necesite.
 ```
 elementos/
 ├── packages/
-│   ├── geo-core/        # @allride/geo-core — lógica pura de geolocalización (0 dependencias)
-│   ├── address-input/   # @allride/address-input — captura de UNA dirección
-│   ├── address-batch/   # @allride/address-batch — geocodificación MASIVA
-│   └── geo-batch-api/   # @allride/geo-batch-api — API para sistemas externos
+│   ├── geo-core/        # @bbacigalupo/geo-core — lógica pura de geolocalización (0 dependencias)
+│   ├── address-input/   # @bbacigalupo/address-input — captura de UNA dirección
+│   ├── address-batch/   # @bbacigalupo/address-batch — geocodificación MASIVA
+│   └── geo-batch-api/   # @bbacigalupo/geo-batch-api — API para sistemas externos
 └── demo/                # Playground (Vite) — npm run dev → http://localhost:5199
 ```
 
@@ -122,9 +122,9 @@ nunca prompt de permiso al cargar.
 ### Uso (React)
 
 ```tsx
-import { AddressInput } from "@allride/address-input";
-import { httpClient } from "@allride/geo-core";
-import "@allride/address-input/styles.css";
+import { AddressInput } from "@bbacigalupo/address-input";
+import { httpClient } from "@bbacigalupo/geo-core";
+import "@bbacigalupo/address-input/styles.css";
 
 <AddressInput
   client={httpClient("/api/geo")}
@@ -158,7 +158,7 @@ backend moderno:
 
 ```ts
 // Next.js — app/api/geo/[op]/route.ts
-import { createGeoHandlers, createProvider, createMemoryRateLimit } from "@allride/geo-core";
+import { createGeoHandlers, createProvider, createMemoryRateLimit } from "@bbacigalupo/geo-core";
 
 const handlers = createGeoHandlers({
   provider: createProvider({ name: "locationiq", apiKey: process.env.LOCATIONIQ_KEY! }),
@@ -169,7 +169,7 @@ export const GET = (req: Request) => handlers.handle(req);
 
 ```ts
 // Express / Node / Vite dev server
-import { createNodeGeoMiddleware } from "@allride/geo-core/node";
+import { createNodeGeoMiddleware } from "@bbacigalupo/geo-core/node";
 app.use(createNodeGeoMiddleware({ basePath: "/api/geo", provider }));
 ```
 
@@ -240,7 +240,7 @@ error — y el barrio deja de repetir a la comuna.
 Para otros países se registra su lista y el mapeo empieza a acertar ahí también:
 
 ```ts
-import { registerAdminAreas } from "@allride/geo-core";
+import { registerAdminAreas } from "@bbacigalupo/geo-core";
 
 registerAdminAreas("MX", ["Cuauhtémoc", "Benito Juárez", "Miguel Hidalgo", …]);
 ```
@@ -307,9 +307,9 @@ individual la persona ve el resultado y lo corrige sola; en masivo nadie mira fi
 fila, así que un resultado mediocre entra al análisis como si fuera bueno.
 
 ```tsx
-import { AddressBatch } from "@allride/address-batch";
-import { httpClient } from "@allride/geo-core";
-import "@allride/address-batch/styles.css";
+import { AddressBatch } from "@bbacigalupo/address-batch";
+import { httpClient } from "@bbacigalupo/geo-core";
+import "@bbacigalupo/address-batch/styles.css";
 
 <AddressBatch
   client={httpClient("/api/geo")}
@@ -463,7 +463,7 @@ exporta CSV no baja ninguno de los dos:
 | Se carga | Cuándo |
 |---|---|
 | `leaflet` (~150 KB) | Al abrir el mapa |
-| `@allride/address-input` | Al pulsar "Corregir" en una fila |
+| `@bbacigalupo/address-input` | Al pulsar "Corregir" en una fila |
 | `xlsx` (~970 KB) | Al cargar un Excel o pedir una plantilla |
 
 > **Sobre `xlsx`**: el paquete de npm quedó congelado en 0.18.5, con advisories abiertos
@@ -487,7 +487,7 @@ que alguien lo apruebe.
 
 ```bash
 npm run build     # compila ambos paquetes a dist/ (JS + tipos)
-npm pack -w @allride/geo-core -w @allride/address-input
+npm pack -w @bbacigalupo/geo-core -w @bbacigalupo/address-input
 ```
 
 El playground consume el **código fuente** vía alias de Vite, así se itera sin recompilar;

@@ -7,7 +7,7 @@ import {
   type BatchStatus,
   type TileConfig,
   type TileThemeName,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import "leaflet/dist/leaflet.css";
 
 /**

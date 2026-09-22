@@ -1,17 +1,17 @@
 {
-  "name": "@allride/wp-embed",
+  "name": "@bbacigalupo/wp-embed",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Bundle standalone de @allride/address-batch para embeber con un <script> en WordPress u otro sitio sin build propio.",
+  "description": "Bundle standalone de @bbacigalupo/address-batch para embeber con un <script> en WordPress u otro sitio sin build propio.",
   "scripts": {
     "build": "vite build && node copy-to-plugin.mjs",
     "dev": "vite build --watch",
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@allride/address-batch": "*",
-    "@allride/geo-core": "*",
+    "@bbacigalupo/address-batch": "*",
+    "@bbacigalupo/geo-core": "*",
     "leaflet": "^1.9.4",
     "react": "^19",
     "react-dom": "^19"

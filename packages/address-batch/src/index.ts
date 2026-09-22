@@ -15,7 +15,7 @@ export {
  * `<BatchMap>` NO se reexporta acá a propósito: hacerlo metería Leaflet y su
  * CSS en el chunk principal y anularía la carga diferida que hace
  * `<BatchResults>`. Quien arme su propia UI lo importa de
- * `@allride/address-batch/map`, que es justamente el chunk aparte.
+ * `@bbacigalupo/address-batch/map`, que es justamente el chunk aparte.
  */
 export type { BatchMapProps } from "./BatchMap.tsx";
 export {

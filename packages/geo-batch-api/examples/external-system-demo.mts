@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import type { GeoClient, GeocodeOutcome } from "@allride/geo-core";
+import type { GeoClient, GeocodeOutcome } from "@bbacigalupo/geo-core";
 import {
   createBatchApiHandlers,
   createCorrectionHandlers,
@@ -15,7 +15,7 @@ import {
 
 /**
  * Demo end-to-end de un "sistema externo" real hablando con
- * `@allride/geo-batch-api` por HTTP — no por import directo, como haría de
+ * `@bbacigalupo/geo-batch-api` por HTTP — no por import directo, como haría de
  * verdad un ERP o un sistema de nóminas ajeno a este monorepo. Ejercita el
  * ciclo completo de los 9 pasos del paquete en un solo recorrido:
  *
@@ -30,7 +30,7 @@ import {
  * de corrección sin depender de qué tan buena esté la cuota del día.
  *
  *   npx tsx examples/external-system-demo.mts
- *   (o: npm run example -w @allride/geo-batch-api)
+ *   (o: npm run example -w @bbacigalupo/geo-batch-api)
  */
 
 // ---------- narración ----------
@@ -326,7 +326,7 @@ async function main() {
     assert.equal(yaNoExiste.status, 404);
     log("trabajo borrado y confirmado (404 al volver a pedirlo)");
 
-    console.log("\n✔ Demo completo: los 9 pasos de @allride/geo-batch-api funcionando juntos, de punta a punta.\n");
+    console.log("\n✔ Demo completo: los 9 pasos de @bbacigalupo/geo-batch-api funcionando juntos, de punta a punta.\n");
   } finally {
     await detenerTodo();
   }

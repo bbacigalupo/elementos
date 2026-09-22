@@ -4,7 +4,7 @@ import {
   toDelimited,
   toExportTable,
   type BatchResultRow,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import { fill, type BatchTexts } from "./texts.ts";
 import { buildWorkbookBlob } from "./xlsx-io.ts";
 

@@ -1,4 +1,4 @@
-import { tableFromRows, type ExportTable, type ParsedTable } from "@allride/geo-core";
+import { tableFromRows, type ExportTable, type ParsedTable } from "@bbacigalupo/geo-core";
 
 /**
  * Lectura y escritura de planillas Excel.

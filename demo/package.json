@@ -9,9 +9,9 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@allride/address-batch": "*",
-    "@allride/address-input": "*",
-    "@allride/geo-core": "*",
+    "@bbacigalupo/address-batch": "*",
+    "@bbacigalupo/address-input": "*",
+    "@bbacigalupo/geo-core": "*",
     "leaflet": "^1.9.4",
     "react": "^19",
     "react-dom": "^19",

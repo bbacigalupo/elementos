@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createMemoryStore, type MemoryStore } from "./memory-store.ts";
 import { processNextJob, runWorkerLoop } from "./worker.ts";
 import type { BatchJob, StoredRow } from "./types.ts";
-import type { GeoBias, GeoClient, GeocodeOutcome } from "@allride/geo-core";
+import type { GeoBias, GeoClient, GeocodeOutcome } from "@bbacigalupo/geo-core";
 
 const AHORA = "2026-08-15T12:00:00.000Z";
 const BIAS: GeoBias = { country: "CL" };

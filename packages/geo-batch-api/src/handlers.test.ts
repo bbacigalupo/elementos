@@ -5,7 +5,7 @@ import { createBatchApiHandlers, type BatchApiHandlers, type SyncOptions } from 
 import { processNextJob } from "./worker.ts";
 import { verifyCorrectionToken, type CorrectionLinkConfig } from "./correction-links.ts";
 import type { ApiScope } from "./types.ts";
-import type { GeoClient, GeocodeOutcome } from "@allride/geo-core";
+import type { GeoClient, GeocodeOutcome } from "@bbacigalupo/geo-core";
 
 const AHORA = "2026-08-15T12:00:00.000Z";
 const BASE = "https://api.ejemplo.cl/v1/batches";

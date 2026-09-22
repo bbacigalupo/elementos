@@ -1,4 +1,4 @@
-import type { GeoBias, GeoClient, TileConfig, TileThemeName } from "@allride/geo-core";
+import type { GeoBias, GeoClient, TileConfig, TileThemeName } from "@bbacigalupo/geo-core";
 import { CorrectionForm } from "./CorrectionForm.tsx";
 import { useCorrectionLink, type CorrectionLinkError } from "./useCorrectionLink.ts";
 import { DEFAULT_BATCH_TEXTS, type BatchTexts } from "./texts.ts";
@@ -6,7 +6,7 @@ import { DEFAULT_BATCH_TEXTS, type BatchTexts } from "./texts.ts";
 /**
  * Página montable de corrección — lo que abre una persona SIN clave de API
  * al hacer clic en un link firmado (`createCorrectionLink` en
- * `@allride/geo-batch-api`). Un componente, no un elemento con fases como
+ * `@bbacigalupo/geo-batch-api`). Un componente, no un elemento con fases como
  * `<AddressBatch>`: acá solo hay una fila y una tarea.
  *
  * Quien despliega la monta en su propia ruta (`/corregir`, la página que

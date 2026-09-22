@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { httpClient } from "@allride/geo-core";
-import { CorrectionPage } from "@allride/address-batch";
+import { httpClient } from "@bbacigalupo/geo-core";
+import { CorrectionPage } from "@bbacigalupo/address-batch";
 import { ZONES } from "./zonas.ts";
 
 /**

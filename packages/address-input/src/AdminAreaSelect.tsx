@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from "react";
-import type { AdminAreaOption } from "@allride/geo-core";
+import type { AdminAreaOption } from "@bbacigalupo/geo-core";
 import { IconX } from "./icons.tsx";
 
 /**

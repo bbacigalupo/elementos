@@ -1,4 +1,4 @@
-# @allride/geo-batch-api
+# @bbacigalupo/geo-batch-api
 
 API de geocodificación masiva para sistemas externos. Sin dependencias y
 **sin base de datos propia**: el paquete trae el contrato y la lógica, y
@@ -7,7 +7,7 @@ quien despliega implementa `BatchStore` con la tecnología que ya usa.
 ```
 Sistema externo ──POST /v1/batches──▶ API ──▶ BatchStore  ← lo implementas tú
        ▲                               │
-       │                           Worker ──▶ runBatch (@allride/geo-core)
+       │                           Worker ──▶ runBatch (@bbacigalupo/geo-core)
        │                               │
        └──webhook / polling────────────┘
                                        │
@@ -15,7 +15,7 @@ Sistema externo ──POST /v1/batches──▶ API ──▶ BatchStore  ← lo
 ```
 
 Ver [`examples/`](./examples) para un demo end-to-end runnable
-(`npm run example -w @allride/geo-batch-api`) que ejercita el ciclo
+(`npm run example -w @bbacigalupo/geo-batch-api`) que ejercita el ciclo
 completo — crear el trabajo, worker, webhook, link de corrección,
 borrado — como lo vería un sistema externo real hablando por HTTP.
 
@@ -153,7 +153,7 @@ comprueba que efectivamente corre.
 ## Claves de API
 
 ```ts
-import { generateApiKey, hashApiKey } from "@allride/geo-batch-api";
+import { generateApiKey, hashApiKey } from "@bbacigalupo/geo-batch-api";
 
 const clave = generateApiKey();            // ark_live_… → se muestra UNA vez
 const hash = await hashApiKey(clave);      // esto es lo que va a la base
@@ -174,7 +174,7 @@ hay tabla nueva: la autorización va firmada en el propio token
 del despliegue), así que emitir uno no necesita guardar nada.
 
 ```ts
-import { createBatchApiHandlers } from "@allride/geo-batch-api";
+import { createBatchApiHandlers } from "@bbacigalupo/geo-batch-api";
 
 const handlers = createBatchApiHandlers({
   store,
@@ -218,7 +218,7 @@ cuenta como corrección (se decidió que el link queda **reutilizable**, no
 de un solo uso: abrirlo de nuevo y confirmar el mismo punto es un no-op, no
 un error — la persona pudo cerrar la pestaña sin querer).
 
-**Navegador** — en `@allride/address-batch`: `<CorrectionPage>` +
+**Navegador** — en `@bbacigalupo/address-batch`: `<CorrectionPage>` +
 `useCorrectionLink`. Reutiliza el mismo `<AddressInput>` que ya usa la
 corrección dentro del lote — se extrajo `CorrectionForm` (el contenido) de
 `RowCorrection` (que lo envolvía en un `<dialog>`) para que la página
@@ -282,7 +282,7 @@ acá lo decide un límite de tiempo y no una señal del proveedor.
 de las que le quedan hoy al tenant se rechaza **al crearlo entero**, nunca
 se procesa a medias — `429 tenant_quota_exceeded` con `needed`, `remaining`,
 `limit`, `resetsAt` y un `detail` legible (mismo encuadre que
-`quotaPreflight`/`overLimit` en `@allride/address-batch/texts.ts`: nombra
+`quotaPreflight`/`overLimit` en `@bbacigalupo/address-batch/texts.ts`: nombra
 que el tope es del plan actual y ofrece contacto a ventas
 (`https://allrideapp.com/contacto/`) — no es un mensaje distinto inventado
 para la API, es el mismo límite visto desde otro cliente). Mismo patrón que
@@ -311,7 +311,7 @@ Sin esto, enterarse de que un trabajo terminó exige hacer polling sobre
 `webhookUrl` que trajo el trabajo:
 
 ```ts
-import { sendWebhook, verifyWebhookSignature } from "@allride/geo-batch-api";
+import { sendWebhook, verifyWebhookSignature } from "@bbacigalupo/geo-batch-api";
 
 // Al montar el worker o los handlers de corrección:
 const webhooks = { secret: process.env.WEBHOOK_SECRET!, retries: 2, retryDelayMs: 1000 };
@@ -377,7 +377,7 @@ vencido. **El método por sí solo no es una política de retención — hay que
 agendarlo de verdad**, y para eso está `runRetentionLoop`:
 
 ```ts
-import { runRetentionLoop } from "@allride/geo-batch-api";
+import { runRetentionLoop } from "@bbacigalupo/geo-batch-api";
 
 runRetentionLoop({
   store,

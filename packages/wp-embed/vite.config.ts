@@ -25,15 +25,15 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@allride/geo-core": fileURLToPath(new URL("../geo-core/src/index.ts", import.meta.url)),
-      "@allride/address-input/styles.css": fileURLToPath(
+      "@bbacigalupo/geo-core": fileURLToPath(new URL("../geo-core/src/index.ts", import.meta.url)),
+      "@bbacigalupo/address-input/styles.css": fileURLToPath(
         new URL("../address-input/src/styles.css", import.meta.url),
       ),
-      "@allride/address-input": fileURLToPath(new URL("../address-input/src/index.ts", import.meta.url)),
-      "@allride/address-batch/styles.css": fileURLToPath(
+      "@bbacigalupo/address-input": fileURLToPath(new URL("../address-input/src/index.ts", import.meta.url)),
+      "@bbacigalupo/address-batch/styles.css": fileURLToPath(
         new URL("../address-batch/src/styles.css", import.meta.url),
       ),
-      "@allride/address-batch": fileURLToPath(new URL("../address-batch/src/index.ts", import.meta.url)),
+      "@bbacigalupo/address-batch": fileURLToPath(new URL("../address-batch/src/index.ts", import.meta.url)),
     },
   },
   optimizeDeps: {

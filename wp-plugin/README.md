@@ -18,12 +18,12 @@ allride-geocodificador/
 ## Actualizar el bundle
 
 ```bash
-npm run build -w @allride/wp-embed
+npm run build -w @bbacigalupo/wp-embed
 ```
 
 Compila `packages/wp-embed` y copia el resultado a `assets/` acá (ver
 `packages/wp-embed/copy-to-plugin.mjs`). Correr esto después de cualquier
-cambio en `@allride/address-batch` o `@allride/geo-core` que deba llegar al
+cambio en `@bbacigalupo/address-batch` o `@bbacigalupo/geo-core` que deba llegar al
 sitio — el plugin no reconstruye nada por su cuenta, solo sirve archivos
 estáticos.
 

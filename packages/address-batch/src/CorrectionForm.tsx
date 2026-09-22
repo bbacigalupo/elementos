@@ -1,4 +1,4 @@
-import { AddressInput } from "@allride/address-input";
+import { AddressInput } from "@bbacigalupo/address-input";
 import {
   DEFAULT_ISSUE_TEXTS,
   correctionMode,
@@ -10,9 +10,9 @@ import {
   type LocationValue,
   type TileConfig,
   type TileThemeName,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import { type BatchTexts } from "./texts.ts";
-import "@allride/address-input/styles.css";
+import "@bbacigalupo/address-input/styles.css";
 
 /**
  * El contenido de corregir una fila: motivos, y el elemento de captura

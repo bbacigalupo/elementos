@@ -7,7 +7,7 @@ import {
   type LocationValue,
   type TileConfig,
   type TileThemeName,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import { CorrectionForm } from "./CorrectionForm.tsx";
 import { fill, type BatchTexts } from "./texts.ts";
 

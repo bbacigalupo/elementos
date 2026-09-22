@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import type { BatchResultRow, LocationValue } from "@allride/geo-core";
+import type { BatchResultRow, LocationValue } from "@bbacigalupo/geo-core";
 
 /**
  * Estado de una página de corrección por link — sin clave de API, el
  * propio token es la credencial. Habla con los endpoints públicos de
- * `@allride/geo-batch-api` (`createCorrectionHandlers`): `GET` para traer
+ * `@bbacigalupo/geo-batch-api` (`createCorrectionHandlers`): `GET` para traer
  * la fila tal como está hoy, `POST` para aplicar la corrección.
  */
 

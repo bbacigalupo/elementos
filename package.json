@@ -11,7 +11,7 @@
     "dev": "npm run dev -w elementos-demo",
     "test": "vitest run",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build -w @allride/geo-core && npm run build -w @allride/address-input && npm run build -w @allride/address-batch && npm run build -w @allride/geo-batch-api"
+    "build": "npm run build -w @bbacigalupo/geo-core && npm run build -w @bbacigalupo/address-input && npm run build -w @bbacigalupo/address-batch && npm run build -w @bbacigalupo/geo-batch-api"
   },
   "devDependencies": {
     "@types/node": "^22",

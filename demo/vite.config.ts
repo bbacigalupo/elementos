@@ -18,13 +18,14 @@ const raizElementos = fileURLToPath(new URL("..", import.meta.url));
  * de Vite — la misma pieza que en producción se monta en Next.js, Express o
  * cualquier backend con Request/Response estándar.
  */
-function geoProxy(apiKey: string | undefined): PluginOption {
+function geoProxy(providerConfig: ReturnType<typeof resolveProvider>): PluginOption {
   return {
     name: "geo-proxy",
     configureServer(server) {
+      console.log(`[geo-proxy] proveedor activo: ${providerConfig.name}`);
       const middleware = createNodeGeoMiddleware({
         basePath: "/api/geo",
-        provider: createProvider(apiKey ? { name: "locationiq", apiKey } : { name: "photon" }),
+        provider: createProvider(providerConfig),
         /*
          * Limitador de balde y no de ventana fija: con la ventana, un lote
          * de 500 direcciones se corta en seco al llegar al tope y el
@@ -75,7 +76,7 @@ function bridge(basePath: string, handle: (req: Request) => Promise<Response>) {
  * datos inventados. Store en memoria — se pierde al reiniciar, que es
  * exactamente lo que corresponde a un playground.
  */
-function batchApiProxy(apiKey: string | undefined): PluginOption {
+function batchApiProxy(providerConfig: ReturnType<typeof resolveProvider>): PluginOption {
   const store = createMemoryStore();
   let claveDemo = "";
 
@@ -100,7 +101,7 @@ function batchApiProxy(apiKey: string | undefined): PluginOption {
         res.end(JSON.stringify({ apiKey: claveDemo }));
       });
 
-      const provider = createProvider(apiKey ? { name: "locationiq", apiKey } : { name: "photon" });
+      const provider = createProvider(providerConfig);
       const batchHandlers = createBatchApiHandlers({
         store,
         basePath: "/v1/batches",
@@ -128,30 +129,59 @@ function batchApiProxy(apiKey: string | undefined): PluginOption {
   };
 }
 
+/**
+ * Selección de proveedor para el playground, por variables de entorno
+ * (`elementos/.env.local`, sin prefijo `VITE_` para que ningún secreto
+ * llegue al navegador — mismo patrón que `LOCATIONIQ_KEY`).
+ *
+ * `GEO_PROVIDER=mapbox` prueba Mapbox EN LOCAL, a pedido de Bernardo
+ * (22 sept 2026): LocationIQ no le está dando buena precisión y quiere
+ * comparar antes de decidir si paga el plan de Mapbox que permite guardar
+ * resultados. Por default queda en modo temporal (`mapboxPermanent` no se
+ * activa acá) — ver la nota completa en `providers/mapbox.ts` antes de
+ * cambiar eso. Sin ninguna clave configurada, cae a Photon (gratis, sin
+ * registro) como siempre.
+ */
+function resolveProvider(env: Record<string, string | undefined>) {
+  const locationIqKey = env.LOCATIONIQ_KEY || process.env.LOCATIONIQ_KEY;
+  const mapboxToken = env.MAPBOX_TOKEN || process.env.MAPBOX_TOKEN;
+  const wanted = (env.GEO_PROVIDER || process.env.GEO_PROVIDER || "").toLowerCase();
+
+  if (wanted === "mapbox" || (!wanted && !locationIqKey && mapboxToken)) {
+    if (!mapboxToken) throw new Error("GEO_PROVIDER=mapbox pero falta MAPBOX_TOKEN en .env.local");
+    return { name: "mapbox" as const, apiKey: mapboxToken };
+  }
+  if (wanted === "locationiq" || (!wanted && locationIqKey)) {
+    if (!locationIqKey) throw new Error("GEO_PROVIDER=locationiq pero falta LOCATIONIQ_KEY en .env.local");
+    return { name: "locationiq" as const, apiKey: locationIqKey };
+  }
+  return { name: "photon" as const };
+}
+
 export default defineConfig(({ mode }) => {
-  // Prefijo vacío: LOCATIONIQ_KEY es una clave de servidor y no lleva el
-  // prefijo VITE_ justamente para que nunca llegue al navegador.
+  // Prefijo vacío: las claves son secretos de servidor y no llevan el
+  // prefijo VITE_ justamente para que nunca lleguen al navegador.
   const env = loadEnv(mode, raizElementos, "");
-  const apiKey = env.LOCATIONIQ_KEY || process.env.LOCATIONIQ_KEY;
+  const providerConfig = resolveProvider(env);
 
   return {
-    plugins: [react(), geoProxy(apiKey), batchApiProxy(apiKey)],
+    plugins: [react(), geoProxy(providerConfig), batchApiProxy(providerConfig)],
     envDir: raizElementos,
     resolve: {
       // El playground apunta al código fuente, no a dist: así se itera sin
       // recompilar. Los consumidores externos usan el dist publicado.
       alias: {
-        "@allride/geo-core": fileURLToPath(new URL("../packages/geo-core/src/index.ts", import.meta.url)),
-        "@allride/address-input/styles.css": fileURLToPath(
+        "@bbacigalupo/geo-core": fileURLToPath(new URL("../packages/geo-core/src/index.ts", import.meta.url)),
+        "@bbacigalupo/address-input/styles.css": fileURLToPath(
           new URL("../packages/address-input/src/styles.css", import.meta.url),
         ),
-        "@allride/address-input": fileURLToPath(
+        "@bbacigalupo/address-input": fileURLToPath(
           new URL("../packages/address-input/src/index.ts", import.meta.url),
         ),
-        "@allride/address-batch/styles.css": fileURLToPath(
+        "@bbacigalupo/address-batch/styles.css": fileURLToPath(
           new URL("../packages/address-batch/src/styles.css", import.meta.url),
         ),
-        "@allride/address-batch": fileURLToPath(
+        "@bbacigalupo/address-batch": fileURLToPath(
           new URL("../packages/address-batch/src/index.ts", import.meta.url),
         ),
       },

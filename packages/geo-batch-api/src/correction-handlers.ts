@@ -1,4 +1,4 @@
-import { haversineMeters, summarize, type LocationValue, type Precision } from "@allride/geo-core";
+import { haversineMeters, summarize, type LocationValue, type Precision } from "@bbacigalupo/geo-core";
 import { verifyCorrectionToken, type CorrectionLinkConfig } from "./correction-links.ts";
 import { fetchAllRows } from "./worker.ts";
 import type { BatchStore } from "./store.ts";

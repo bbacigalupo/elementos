@@ -4,12 +4,12 @@
  * Ambas cosas son datos, no código: se pueden cambiar por proyecto sin
  * tocar el componente.
  *
- * Las capas de tiles se reexportan desde `@allride/geo-core`, donde viven
+ * Las capas de tiles se reexportan desde `@bbacigalupo/geo-core`, donde viven
  * para que la carga masiva use exactamente las mismas sin duplicarlas. El
  * marcador sí vive acá: es identidad de marca, no configuración de proveedor.
  */
 
-export { TILE_THEMES, type TileConfig, type TileThemeName } from "@allride/geo-core";
+export { TILE_THEMES, type TileConfig, type TileThemeName } from "@bbacigalupo/geo-core";
 
 /**
  * Trazado de la "manita" del logo de AllRide, tal como viene del SVG de

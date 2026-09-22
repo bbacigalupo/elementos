@@ -1,4 +1,4 @@
-import type { AdminAreaOption, GeoBias } from "@allride/geo-core";
+import type { AdminAreaOption, GeoBias } from "@bbacigalupo/geo-core";
 
 /**
  * Configuración compartida por los dos playgrounds.

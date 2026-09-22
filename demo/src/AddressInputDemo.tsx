@@ -6,8 +6,8 @@ import {
   type CaptureMetrics,
   type GeoBias,
   type LocationValue,
-} from "@allride/geo-core";
-import { AddressInput, type MarkerConfig, type TileThemeName } from "@allride/address-input";
+} from "@bbacigalupo/geo-core";
+import { AddressInput, type MarkerConfig, type TileThemeName } from "@bbacigalupo/address-input";
 import { COMUNAS_RM, ZONES } from "./zonas.ts";
 
 /**
@@ -87,7 +87,7 @@ export function AddressInputDemo() {
                 setResetKey((k) => k + 1);
               }}
             >
-              <option value="proxy">Proxy HTTP (/api/geo → Photon o LocationIQ)</option>
+              <option value="proxy">Proxy HTTP (/api/geo → según .env.local, ver terminal)</option>
               <option value="direct">Directo desde el navegador (Photon)</option>
             </select>
           </label>

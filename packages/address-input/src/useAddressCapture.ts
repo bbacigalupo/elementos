@@ -16,7 +16,7 @@ import {
   type MatchedLevel,
   type Precision,
   type Suggestion,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 
 /**
  * Máquina de estados de captura de dirección, sin UI (headless).

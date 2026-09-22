@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { normalizeTokens } from "@allride/geo-core";
+import { normalizeTokens } from "@bbacigalupo/geo-core";
 
 /**
  * Resalta en la sugerencia las palabras que calzan con lo escrito.

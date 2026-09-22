@@ -9,7 +9,7 @@ import {
   type QuotaStatus,
   type TileConfig,
   type TileThemeName,
-} from "@allride/geo-core";
+} from "@bbacigalupo/geo-core";
 import { BatchResults } from "./BatchResults.tsx";
 import { BatchExport, type ExportFormatOptions } from "./BatchExport.tsx";
 import { countryOptions } from "./countries.ts";
