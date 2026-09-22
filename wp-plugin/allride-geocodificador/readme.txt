@@ -34,6 +34,11 @@ clave del proveedor de direcciones).
 
 == Changelog ==
 
+= 1.1.1 =
+* Corregido: el mapa mostraba "API KEY REQUIRED" en vez del mapa de fondo.
+  CARTO cortó el acceso gratuito sin clave a sus mapas; se reemplazó por
+  Esri (gratis, sin clave), sin cambios visibles más allá de eso.
+
 = 1.1.0 =
 * El país ya no viene fijo: selector obligatorio en la herramienta, sin
   default (evita degradar en silencio direcciones de fuera de Chile).
