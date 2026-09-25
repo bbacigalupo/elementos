@@ -29,6 +29,10 @@ export interface Texts {
   coordsPlaceholder: string;
   coordsHelp: string;
   coordsSubmit: string;
+  /** Campo de coordenadas en la pantalla del mapa (`coordsOnConfirm`). */
+  coordsOnConfirmLabel: string;
+  coordsOnConfirmSubmit: string;
+  coordsOnConfirmPlaceholder: string;
   coordsInvalid: string;
   coordsOutOfRange: string;
   coordsSwapped: string;
@@ -90,9 +94,12 @@ export const DEFAULT_TEXTS: Texts = {
   pickOnMap: "Marcar en el mapa",
   pickOnMapPlaceholder: "Ubica el punto en el mapa",
   enterCoords: "Ingresar coordenadas",
-  coordsPlaceholder: "-33.4489, -70.6693",
+  coordsPlaceholder: "Ej: -33.4489, -70.6693",
   coordsHelp: "Acepta decimales (lat, lng), grados 33°26'56\"S y enlaces de Google Maps.",
   coordsSubmit: "Usar coordenadas",
+  coordsOnConfirmLabel: "¿Ya tienes el punto? Pega sus coordenadas o el link de Google Maps.",
+  coordsOnConfirmSubmit: "Mover el pin",
+  coordsOnConfirmPlaceholder: "Pega coordenadas o un link de Google Maps",
   coordsInvalid: "No pudimos interpretar esas coordenadas. Revisa el formato.",
   coordsOutOfRange: "Esas coordenadas están fuera de rango (lat ±90, lng ±180).",
   coordsSwapped: "Interpretamos el orden como longitud, latitud y lo corregimos — revisa el pin.",

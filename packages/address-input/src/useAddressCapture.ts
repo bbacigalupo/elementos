@@ -656,6 +656,12 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
       const parsed = parseCoordinates(text, bias);
       if (!parsed.ok) return { ok: false, error: parsed.error };
       usedCoordsRef.current = true;
+      // Un arrastre recién hecho puede tener su consulta de dirección todavía
+      // en espera: si se dispara después, pondría el nombre del punto viejo.
+      if (reverseTimerRef.current !== null) {
+        window.clearTimeout(reverseTimerRef.current);
+        reverseTimerRef.current = null;
+      }
       toConfirming(
         {
           lat: parsed.lat,
@@ -669,6 +675,11 @@ export function useAddressCapture(config: AddressCaptureConfig): AddressCapture 
         },
         null,
       );
+      // Si el mapa ya estaba a la vista (coordenadas pegadas en la pantalla
+      // de confirmación), no se vuelve a montar: hay que pedirle que mueva
+      // el pin. Si recién se va a montar, nace ya en este punto y el pedido
+      // no hace nada.
+      setRecenterRequest({ lat: parsed.lat, lng: parsed.lng, nonce: Date.now() });
       runReverse(parsed.lat, parsed.lng);
       return { ok: true, warnings: parsed.warnings };
     },

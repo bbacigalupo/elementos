@@ -127,6 +127,11 @@ export interface BatchTexts {
   correctionHelp: string;
   correctionLoading: string;
   correctionDone: string;
+  /** Enlace del diálogo de corrección. */
+  openInGoogleMaps: string;
+  externalLookupHint: string;
+  /** Texto solo para lectores de pantalla. */
+  opensInNewTab: string;
 
   // página de corrección por link
   correctionLinkExpired: string;
@@ -157,6 +162,7 @@ export interface BatchTexts {
   precisionStreet: string;
   precisionZone: string;
   precisionExact: string;
+  precisionInterpolated: string;
 }
 
 export const DEFAULT_BATCH_TEXTS: BatchTexts = {
@@ -331,6 +337,9 @@ export const DEFAULT_BATCH_TEXTS: BatchTexts = {
     "Elige una sugerencia, o marca el punto en el mapa. El punto que confirmes reemplaza al que encontró el buscador.",
   correctionLoading: "Cargando el corrector…",
   correctionDone: "Corregida a mano",
+  openInGoogleMaps: "Búscala en Google Maps",
+  externalLookupHint: "¿No logras ubicarla?",
+  opensInNewTab: "(se abre en otra pestaña)",
 
   correctionLinkExpired: "Este link ya venció. Pide uno nuevo a quien te lo compartió.",
   correctionLinkInvalid: "Este link no es válido.",
@@ -364,6 +373,7 @@ export const DEFAULT_BATCH_TEXTS: BatchTexts = {
   precisionStreet: "Calle, sin altura",
   precisionZone: "Centro de zona",
   precisionExact: "Coordenadas ingresadas",
+  precisionInterpolated: "Altura estimada",
 };
 
 /** Reemplaza `{clave}` por su valor. */

@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AdminAreaSelect } from "./AdminAreaSelect.tsx";
 import { ConfirmMap } from "./ConfirmMap.tsx";
 import { Highlight } from "./Highlight.tsx";
@@ -28,6 +28,22 @@ export interface AddressInputProps extends AddressCaptureConfig {
     marker?: MarkerConfig;
   };
   className?: string;
+  /**
+   * Ofrece pegar coordenadas (o un link de Google Maps) también en la
+   * pantalla del mapa, para mover el pin sin volver al buscador. Pensado
+   * para la revisión de direcciones difíciles, donde alguien las ubica en
+   * otra herramienta y trae el punto de vuelta. Apagado por omisión: en una
+   * captura normal sería una opción más que nadie necesita.
+   */
+  coordsOnConfirm?: boolean;
+  /**
+   * Pedido desde fuera de "voy a traer coordenadas": cada vez que cambia el
+   * número, se abre el campo de coordenadas (o se enfoca el de la pantalla
+   * del mapa, si ya está ahí) listo para pegar, sin un clic extra. Lo usa la
+   * corrección del lote al abrir Google Maps en otra pestaña: lo más probable
+   * es que la persona vuelva con coordenadas copiadas.
+   */
+  coordsRequest?: number;
 }
 
 export function AddressInput({
@@ -37,11 +53,14 @@ export function AddressInput({
   texts: textsOverride,
   map: mapConfig,
   className,
+  coordsOnConfirm = false,
+  coordsRequest,
   ...config
 }: AddressInputProps) {
   const capture = useAddressCapture(config);
   const texts: Texts = { ...DEFAULT_TEXTS, ...textsOverride };
   const listboxId = useId();
+  const coordsFieldId = useId();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -52,6 +71,14 @@ export function AddressInput({
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "failed">("loading");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const fieldRef = useRef<HTMLDivElement | null>(null);
+  const coordsInputRef = useRef<HTMLInputElement | null>(null);
+  const coordsInlineRef = useRef<HTMLInputElement | null>(null);
+  const confirmRowRef = useRef<HTMLDivElement | null>(null);
+  /** El campo de coordenadas se acaba de abrir por pedido y hay que enfocarlo. */
+  const focusCoordsPendingRef = useRef(false);
+  /** Se usaron coordenadas: al aparecer el mapa, que "Confirmar" quede a la vista. */
+  const revealConfirmPendingRef = useRef(false);
+  const lastCoordsRequestRef = useRef(coordsRequest);
 
   /**
    * Con el teclado abierto, el desplegable nacía tapado: en móvil el teclado
@@ -142,16 +169,65 @@ export function AddressInput({
   };
   const errorText = errorCode ? ERROR_TEXTS[errorCode] : null;
 
-  function handleCoordsSubmit() {
+  function handleCoordsSubmit(): boolean {
     const result = submitCoords(coordsText);
     if (!result.ok) {
       setCoordsError(result.error === "out_of_range" ? texts.coordsOutOfRange : texts.coordsInvalid);
-      return;
+      return false;
     }
     setCoordsError(null);
     setCoordsWarnings(result.warnings);
     setCoordsOpen(false);
+    // Solo al pasar del buscador al mapa: si ya estaba en el mapa, la vista
+    // no cambia de tamaño y no hay nada que revelar.
+    revealConfirmPendingRef.current = phase !== "confirming";
+    return true;
   }
+
+  // Pedido externo de coordenadas (ver `coordsRequest`).
+  useEffect(() => {
+    if (coordsRequest === undefined || coordsRequest === lastCoordsRequestRef.current) return;
+    lastCoordsRequestRef.current = coordsRequest;
+    if (!modes.coords) return;
+    if (phase === "confirming") {
+      if (coordsOnConfirm) coordsInlineRef.current?.focus();
+      return;
+    }
+    if (phase === "idle") {
+      setDropdownOpen(false);
+      if (coordsOpen) coordsInputRef.current?.focus();
+      else {
+        focusCoordsPendingRef.current = true;
+        setCoordsOpen(true);
+      }
+    }
+  }, [coordsRequest, phase, modes.coords, coordsOnConfirm, coordsOpen]);
+
+  // El campo recién abierto por pedido queda enfocado: llegar y pegar.
+  useEffect(() => {
+    if (!coordsOpen || !focusCoordsPendingRef.current) return;
+    focusCoordsPendingRef.current = false;
+    coordsInputRef.current?.focus();
+  }, [coordsOpen]);
+
+  /*
+   * Tras usar coordenadas aparece el mapa, que ocupa casi todo el alto: sin
+   * esto "Confirmar" quedaba bajo el borde (sobre todo dentro del diálogo de
+   * corrección) y había que desplazarse para encontrarlo. "nearest" mueve
+   * lo justo para que se vea, sin saltar si ya estaba a la vista.
+   */
+  useEffect(() => {
+    if (phase !== "confirming" || !revealConfirmPendingRef.current) return;
+    revealConfirmPendingRef.current = false;
+    const reducir = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const raf = window.requestAnimationFrame(() =>
+      confirmRowRef.current?.scrollIntoView({ block: "nearest", behavior: reducir ? "auto" : "smooth" }),
+    );
+    return () => window.cancelAnimationFrame(raf);
+    // Solo `phase`: si dependiera también de `candidate`, la dirección que
+    // llega enseguida (por caché) re-ejecutaba el efecto y su limpieza
+    // cancelaba el desplazamiento antes de que ocurriera.
+  }, [phase]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     const count = navigableCount;
@@ -466,6 +542,7 @@ export function AddressInput({
           {modes.coords && coordsOpen && (
             <div className="ari-coords">
               <input
+                ref={coordsInputRef}
                 type="text"
                 className="ari-input"
                 inputMode="text"
@@ -510,6 +587,45 @@ export function AddressInput({
           )}
           {coordsWarnings.includes("swapped") && <p className="ari-warn">{texts.coordsSwapped}</p>}
           {coordsWarnings.includes("far_from_bias") && <p className="ari-warn">{texts.coordsFar}</p>}
+
+          {coordsOnConfirm && modes.coords && (
+            <form
+              className="ari-coords-inline"
+              onSubmit={(e) => {
+                e.preventDefault();
+                // Se vacía al usarlo: el campo queda listo para pegar otro
+                // punto, y el que se usó ya se ve en el mapa y en la dirección.
+                if (handleCoordsSubmit()) setCoordsText("");
+              }}
+            >
+              {/* La indicación va en el placeholder para no sumar una línea
+                  que empuje "Confirmar" fuera de la vista; la etiqueta queda
+                  para lectores de pantalla. */}
+              <label className="ari-visually-hidden" htmlFor={coordsFieldId}>
+                {texts.coordsOnConfirmLabel}
+              </label>
+              <div className="ari-coords-inline-row">
+                <input
+                  ref={coordsInlineRef}
+                  id={coordsFieldId}
+                  type="text"
+                  className="ari-input"
+                  inputMode="text"
+                  autoComplete="off"
+                  placeholder={texts.coordsOnConfirmPlaceholder}
+                  value={coordsText}
+                  onChange={(e) => {
+                    setCoordsText(e.target.value);
+                    setCoordsError(null);
+                  }}
+                />
+                <button type="submit" className="ari-btn ari-btn-secondary" disabled={!coordsText.trim()}>
+                  {texts.coordsOnConfirmSubmit}
+                </button>
+              </div>
+              {coordsError && <p className="ari-error">{coordsError}</p>}
+            </form>
+          )}
 
           <div className="ari-mapwrap">
             <ConfirmMap
@@ -571,7 +687,7 @@ export function AddressInput({
             </p>
           )}
 
-          <div className="ari-row">
+          <div className="ari-row" ref={confirmRowRef}>
             <button type="button" className="ari-btn ari-btn-secondary" onClick={edit}>
               {texts.back}
             </button>

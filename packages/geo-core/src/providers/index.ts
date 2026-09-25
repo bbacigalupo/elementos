@@ -2,23 +2,17 @@ import { withCache, type GeoCacheOptions } from "../cache.ts";
 import { withCircuitBreaker, type CircuitBreakerOptions } from "../circuit-breaker.ts";
 import { createCascadingProvider, type CascadeOptions } from "./cascade.ts";
 import { createLocationIqProvider } from "./locationiq.ts";
-import { createMapboxProvider } from "./mapbox.ts";
 import { createNominatimProvider } from "./nominatim.ts";
 import { createPhotonProvider } from "./photon.ts";
 import type { GeoProvider } from "./types.ts";
 
-export type ProviderName = "photon" | "nominatim" | "locationiq" | "mapbox" | "google";
+export type ProviderName = "photon" | "nominatim" | "locationiq" | "google";
 
 export interface ProviderConfig {
   name: ProviderName;
   apiKey?: string;
   baseUrl?: string;
   userAgent?: string;
-  /**
-   * Mapbox solo: ver la nota de `mapbox.ts` antes de tocar esto. `false`
-   * (temporal, gratis, sin almacenamiento) por omisión.
-   */
-  mapboxPermanent?: boolean;
   /**
    * Caché compartida de resultados. Viene activada: es lo que evita pagar
    * (o gastar cuota) varias veces por la misma dirección. `false` la apaga.
@@ -75,13 +69,6 @@ export function createBaseProvider(config: ProviderConfig): GeoProvider {
         baseUrl: config.baseUrl,
         userAgent: config.userAgent,
       });
-    case "mapbox":
-      return createMapboxProvider({
-        accessToken: config.apiKey ?? "",
-        baseUrl: config.baseUrl,
-        userAgent: config.userAgent,
-        permanent: config.mapboxPermanent,
-      });
     case "google":
       // Planificado: Google Places (New) con session tokens. La interfaz
       // GeoProvider ya contempla todo lo necesario (autocomplete/geocode/
@@ -92,5 +79,5 @@ export function createBaseProvider(config: ProviderConfig): GeoProvider {
   }
 }
 
-export { createCascadingProvider, createLocationIqProvider, createMapboxProvider, createNominatimProvider, createPhotonProvider };
+export { createCascadingProvider, createLocationIqProvider, createNominatimProvider, createPhotonProvider };
 export type { CascadeOptions, GeoProvider };

@@ -12,7 +12,7 @@ export type Precision =
   | "street" // la calle, sin número exacto
   | "zone" // centro de comuna/ciudad/zona
   | "exact" // coordenadas ingresadas directamente por la persona
-  | "interpolated"; // Mapbox estimó la altura entre dos números conocidos de la misma calle
+  | "interpolated"; // altura estimada entre dos números conocidos de la misma calle
 
 /** Cómo se originó el punto. */
 export type LocationSource = "autocomplete" | "search" | "pin" | "gps" | "coords";

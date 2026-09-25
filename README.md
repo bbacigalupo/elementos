@@ -104,8 +104,7 @@ sirve el fondo gris y las etiquetas de calle como dos servicios de tiles separad
 que un `map.tiles` propio que solo defina `{ url, attribution, ... }` sin `overlay` se ve
 sin nombres de calle si el basemap elegido los separa así. No hay equivalente gratis y sin
 clave para el look más colorido que tenía `carto-voyager`; queda igual a `carto-positron`
-hasta pagar un proveedor con clave (Stadia, MapTiler, o Mapbox — ya integrado para geocoding
-en `providers/mapbox.ts`, no para tiles). Volumen alto de un basemap de Esri sin cuenta
+hasta pagar un proveedor con clave (Stadia, MapTiler). Volumen alto de un basemap de Esri sin cuenta
 puede eventualmente pedir revisar sus términos, igual que se advertía antes para CARTO.
 
 **Marcador** (`map.marker`): por defecto es el **pin de marca AllRide** — cuerpo celeste con
@@ -489,17 +488,36 @@ exporta CSV no baja ninguno de los dos:
 
 ### Versionado y consumo
 
-Los paquetes se publican versionados; los consumidores fijan la versión y adoptan los
-cambios cuando lo deciden — un ajuste al elemento no altera una encuesta en producción sin
-que alguien lo apruebe.
+Los paquetes se publican versionados en GitHub Packages; cada herramienta que los usa fija
+la versión y adopta los cambios cuando lo decide. Un ajuste al elemento no altera una
+herramienta en producción sin que alguien lo apruebe.
+
+**Publicar.** Se sube el número en el `package.json` del paquete y se sube a `main`. La
+Action `.github/workflows/publicar-paquetes.yml` compila, verifica tipos y tests, y publica
+solo las versiones que todavía no existen (`geo-core`, luego `address-input`, luego
+`address-batch`). Sin cambio de versión no publica nada.
+
+**Qué número subir.** En versiones 0.x, `^0.9.0` solo acepta 0.9.*, así que:
+
+- el tercer número (0.9.0 → 0.9.1) para arreglos y mejoras compatibles: las herramientas lo
+  reciben con `npm update`, sin tocar su `package.json`;
+- el segundo número (0.9.x → 0.10.0) cuando se quita o cambia algo que alguien podía estar
+  usando (así pasó al quitar Mapbox de `geo-core`), y cuando un paquete pasa a requerir esa
+  versión nueva de otro. Cada herramienta tiene que subir su rango a propósito.
+
+**Probar en otra herramienta antes de publicar.** Empaqueta el código actual tal como se
+publicaría y lo instala en la app sin tocar su `package.json` ni su `package-lock.json`:
 
 ```bash
-npm run build     # compila ambos paquetes a dist/ (JS + tipos)
-npm pack -w @bbacigalupo/geo-core -w @bbacigalupo/address-input
+elementos/scripts/probar-en-app.sh <carpeta-de-la-app>   # ej. ../optimizador-rutas/app
 ```
 
+Después hay que reiniciar el servidor de desarrollo de la app. Para volver a lo publicado,
+`npm install` en la carpeta de la app.
+
 El playground consume el **código fuente** vía alias de Vite, así se itera sin recompilar;
-`dist/` es solo lo que viaja a los consumidores.
+`dist/` es solo lo que viaja a los consumidores (cada `build` lo borra antes de compilar,
+para que no se publiquen archivos de algo que ya no existe).
 
 ### Desarrollo
 

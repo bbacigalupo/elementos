@@ -1,0 +1,73 @@
+# Publica en GitHub Packages los paquetes de elementos cuya versión todavía
+# no existe en el registro. Subir a main sin cambiar ninguna versión no
+# publica nada; para publicar, se sube el número en el package.json del
+# paquete (ver "Versionado y consumo" en el README).
+#
+# Usa el GITHUB_TOKEN propio de la Action: no hace falta ningún token
+# personal. Si GitHub rechaza la publicación con 403, en la página del
+# paquete (github.com/bbacigalupo?tab=packages) → Package settings →
+# "Manage Actions access", hay que darle permiso de escritura a este repo.
+
+name: Publicar paquetes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "package-lock.json"
+      - ".github/workflows/publicar-paquetes.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publicar-paquetes
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      # El .npmrc del repo lee ${GITHUB_TOKEN} para el scope @bbacigalupo.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@bbacigalupo"
+
+      - name: Instalar
+        run: npm ci --no-audit --no-fund
+
+      # Nada se publica si algo no compila o algún test falla.
+      - name: Compilar
+        run: npm run build
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      # En orden de dependencias: quien instala address-batch necesita que
+      # sus versiones de address-input y geo-core ya estén publicadas.
+      - name: Publicar versiones nuevas
+        run: |
+          set -euo pipefail
+          for paquete in geo-core address-input address-batch; do
+            nombre=$(node -p "require('./packages/$paquete/package.json').name")
+            version=$(node -p "require('./packages/$paquete/package.json').version")
+            if npm view "$nombre@$version" version >/dev/null 2>&1; then
+              echo "$nombre@$version ya está publicado, se omite."
+            else
+              echo "Publicando $nombre@$version ..."
+              npm publish --workspace "packages/$paquete"
+            fi
+          done

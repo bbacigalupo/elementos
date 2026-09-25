@@ -1,6 +1,6 @@
 {
   "name": "@bbacigalupo/geo-core",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "type": "module",
   "description": "Núcleo de geolocalización: tipos, parser de coordenadas, proveedores de geocoding intercambiables y handlers HTTP portables. Sin dependencias, sin UI.",
   "license": "UNLICENSED",
@@ -30,7 +30,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "prepack": "npm run build",
     "typecheck": "tsc --noEmit -p ."
   }

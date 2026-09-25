@@ -64,25 +64,6 @@ DAILY_QUOTA=450
 arrancar a propósito — mejor un deploy roto y visible que un backend abierto
 sin CORS.
 
-### Cambiar a Mapbox (preparado, sin activar — 22 sept 2026)
-
-`lib/handlers.ts` elige el proveedor por variable de entorno; sin tocar
-código, el día que exista la clave paga se activa así:
-
-```
-GEO_PROVIDER=mapbox
-MAPBOX_TOKEN=<el access token de Mapbox>
-MAPBOX_PERMANENT=true
-```
-
-`MAPBOX_PERMANENT=true` es lo que permite guardar los resultados (modo
-"Permanent Geocoding" de Mapbox, USD 5/1.000 consultas) — **no ponerlo en
-`true` sin haber confirmado que la cuenta de Mapbox ya tiene ese plan
-pagado**; sin esa variable (o en `false`) Mapbox responde igual pero en modo
-temporal (gratis, resultados de solo pantalla) y este backend nunca los
-cachea. Ver la nota completa en `geo-core/src/providers/mapbox.ts`. Sin
-`GEO_PROVIDER` puesto, este backend sigue funcionando exactamente igual que
-antes (LocationIQ).
 
 ## Límite conocido
 

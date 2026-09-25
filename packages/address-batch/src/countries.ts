@@ -51,6 +51,12 @@ function regionName(code: string): string {
   return displayNames?.of(code) ?? code;
 }
 
+/** Nombre del país en español ("CL" → "Chile"); vacío si no hay código. */
+export function countryName(code: string | null | undefined): string {
+  if (!code || !/^[a-zA-Z]{2}$/.test(code)) return "";
+  return regionName(code.toUpperCase());
+}
+
 /**
  * Países ofrecidos en el selector, con su nombre en español, ordenados
  * alfabéticamente. `codes` acota la lista (ej. solo los que de verdad

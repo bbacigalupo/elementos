@@ -73,7 +73,11 @@
 }
 
 .ari-input::placeholder {
-  color: var(--ari-muted);
+  /* Más claro que el texto de ayuda: un ejemplo no debe leerse como un
+     valor ya escrito (pasaba con las coordenadas de ejemplo). ~3,5:1 sobre
+     blanco con los colores por defecto; se mezcla con el fondo, no con
+     blanco, para que también funcione en temas oscuros. */
+  color: color-mix(in srgb, var(--ari-muted) 70%, var(--ari-surface));
   opacity: 1;
 }
 
@@ -334,6 +338,42 @@
   border-radius: var(--ari-radius);
 }
 
+.ari-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Coordenadas en la pantalla del mapa (`coordsOnConfirm`): una línea, sin
+   el recuadro del modo buscador, para no empujar el mapa hacia abajo. */
+.ari-coords-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+}
+
+.ari-coords-inline-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ari-coords-inline-row .ari-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ari-coords-inline-row .ari-btn {
+  flex: none;
+  white-space: nowrap;
+}
+
 .ari-mapwrap {
   position: relative;
   height: var(--ari-map-height);
@@ -470,6 +510,9 @@
 .ari-row {
   display: flex;
   gap: 0.5rem;
+  /* Al revelar "Confirmar" tras usar coordenadas (scrollIntoView), deja aire
+     bajo los botones en vez de pegarlos al borde del contenedor. */
+  scroll-margin-bottom: 1.5rem;
 }
 
 .ari-row .ari-btn {

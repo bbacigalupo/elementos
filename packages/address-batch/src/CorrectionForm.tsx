@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { AddressInput } from "@bbacigalupo/address-input";
 import {
   DEFAULT_ISSUE_TEXTS,
   correctionMode,
   isFailure,
-  normalizeTokens,
   type BatchResultRow,
   type GeoBias,
   type GeoClient,
@@ -11,8 +11,12 @@ import {
   type TileConfig,
   type TileThemeName,
 } from "@bbacigalupo/geo-core";
+import { googleMapsSearchUrl, needsManualLookup, queryWithArea } from "./google-maps.ts";
 import { type BatchTexts } from "./texts.ts";
 import "@bbacigalupo/address-input/styles.css";
+
+// Se sigue exportando desde acá: ya era parte de la API pública del paquete.
+export { queryWithArea };
 
 /**
  * El contenido de corregir una fila: motivos, y el elemento de captura
@@ -23,23 +27,6 @@ import "@bbacigalupo/address-input/styles.css";
  * diálogo — en una página completa a la que alguien llega por un link de
  * corrección, donde no hay nada detrás que atenuar ni de qué "salir".
  */
-
-/**
- * Texto de partida para corregir.
- *
- * En una planilla por columnas la comuna viaja aparte y `raw` queda como
- * "Av. Grecia 3000", sin ella. Acá sí conviene pegarla al texto: la persona
- * está escribiendo en un buscador con autocompletado, donde la comuna es lo
- * que desambigua entre calles homónimas — al revés que en el lote, donde
- * iba como dato estructurado.
- */
-export function queryWithArea(result: BatchResultRow): string {
-  const area = result.row.adminArea?.name;
-  if (!area) return result.row.raw;
-  const escrito = normalizeTokens(result.row.raw);
-  const faltante = normalizeTokens(area).some((t) => !escrito.some((e) => e.startsWith(t)));
-  return faltante ? `${result.row.raw}, ${area}` : result.row.raw;
-}
 
 export interface CorrectionFormProps {
   result: BatchResultRow;
@@ -52,6 +39,9 @@ export interface CorrectionFormProps {
 
 export function CorrectionForm({ result, client, bias, texts, map, onResolve }: CorrectionFormProps) {
   const modo = correctionMode(result);
+  // Cada clic en "Búscala en Google Maps" pide abrir el campo de coordenadas:
+  // lo más probable es que la persona vuelva de esa pestaña con el punto copiado.
+  const [coordsRequest, setCoordsRequest] = useState(0);
 
   /*
    * Los motivos de fallo no se repiten acá. Si alguien llegó a esta pantalla
@@ -80,6 +70,25 @@ export function CorrectionForm({ result, client, bias, texts, map, onResolve }: 
         </ul>
       )}
 
+      {/* Referencia externa para las filas difíciles: se abre Google Maps
+          para ubicar el lugar y el punto se marca acá, en nuestro mapa. */}
+      {needsManualLookup(result) && (
+        <p className="arb-external-lookup">
+          {texts.externalLookupHint}{" "}
+          <a
+            className="arb-link"
+            href={googleMapsSearchUrl(result, bias.country)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setCoordsRequest((n) => n + 1)}
+          >
+            {texts.openInGoogleMaps}
+            <span aria-hidden="true">{"\u00a0↗"}</span>
+            <span className="arb-visually-hidden"> {texts.opensInNewTab}</span>
+          </a>
+        </p>
+      )}
+
       <AddressInput
         client={client}
         bias={bias}
@@ -95,6 +104,10 @@ export function CorrectionForm({ result, client, bias, texts, map, onResolve }: 
         initialCandidate={modo === "map" ? result.value : null}
         anchor={result.value ? { lat: result.value.lat, lng: result.value.lng } : null}
         map={map}
+        // Mismas filas que ofrecen buscar en Google Maps: quien la ubicó allá
+        // pega el punto acá sin volver al buscador.
+        coordsOnConfirm={needsManualLookup(result)}
+        coordsRequest={coordsRequest}
         /*
          * En modo mapa no se pone ni encabezado ni ayuda: la pantalla de
          * confirmación del propio elemento ya pregunta "¿Es correcto el

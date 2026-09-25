@@ -132,29 +132,17 @@ function batchApiProxy(providerConfig: ReturnType<typeof resolveProvider>): Plug
 /**
  * Selección de proveedor para el playground, por variables de entorno
  * (`elementos/.env.local`, sin prefijo `VITE_` para que ningún secreto
- * llegue al navegador — mismo patrón que `LOCATIONIQ_KEY`).
- *
- * `GEO_PROVIDER=mapbox` prueba Mapbox EN LOCAL, a pedido de Bernardo
- * (22 sept 2026): LocationIQ no le está dando buena precisión y quiere
- * comparar antes de decidir si paga el plan de Mapbox que permite guardar
- * resultados. Por default queda en modo temporal (`mapboxPermanent` no se
- * activa acá) — ver la nota completa en `providers/mapbox.ts` antes de
- * cambiar eso. Sin ninguna clave configurada, cae a Photon (gratis, sin
- * registro) como siempre.
+ * llegue al navegador). Con `LOCATIONIQ_KEY` usa LocationIQ; sin ella, o
+ * con `GEO_PROVIDER=photon`, usa Photon (gratis, sin registro).
  */
 function resolveProvider(env: Record<string, string | undefined>) {
   const locationIqKey = env.LOCATIONIQ_KEY || process.env.LOCATIONIQ_KEY;
-  const mapboxToken = env.MAPBOX_TOKEN || process.env.MAPBOX_TOKEN;
   const wanted = (env.GEO_PROVIDER || process.env.GEO_PROVIDER || "").toLowerCase();
 
-  if (wanted === "mapbox" || (!wanted && !locationIqKey && mapboxToken)) {
-    if (!mapboxToken) throw new Error("GEO_PROVIDER=mapbox pero falta MAPBOX_TOKEN en .env.local");
-    return { name: "mapbox" as const, apiKey: mapboxToken };
-  }
-  if (wanted === "locationiq" || (!wanted && locationIqKey)) {
-    if (!locationIqKey) throw new Error("GEO_PROVIDER=locationiq pero falta LOCATIONIQ_KEY en .env.local");
+  if (wanted !== "photon" && locationIqKey) {
     return { name: "locationiq" as const, apiKey: locationIqKey };
   }
+  if (wanted === "locationiq") throw new Error("GEO_PROVIDER=locationiq pero falta LOCATIONIQ_KEY en .env.local");
   return { name: "photon" as const };
 }
 

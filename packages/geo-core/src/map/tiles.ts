@@ -74,8 +74,7 @@ export interface TileOverlay {
  * las etiquetas como dos capas separadas (`overlay` en `TileConfig`); no
  * hay equivalente gratis y sin clave para el look más colorido de
  * `carto-voyager`, así que queda igual a `carto-positron` hasta que se
- * pague un proveedor con clave (Stadia, MapTiler, Mapbox — ya integrado
- * en `providers/mapbox.ts` para geocoding, no para tiles).
+ * pague un proveedor con clave (Stadia, MapTiler).
  */
 export type TileThemeName =
   | "osm"

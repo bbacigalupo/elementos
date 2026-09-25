@@ -12,8 +12,8 @@ import type { AutocompleteOptions, GeoProvider, RequestOptions } from "./types.t
  * Pensado para "barrido gratis primero, pagado solo para lo que dejó
  * incierto o fallido" (Bernardo, optimizador de rutas, §11): la mayoría de
  * las direcciones limpias las resuelve bien un proveedor gratuito
- * (`photon`), y el proveedor pagado (`mapbox`) solo se consulta —y solo se
- * cobra— para el resto. Genérico a propósito: no sabe de organizaciones ni
+ * (`photon`), y el siguiente de la lista (por ejemplo uno pagado) solo se
+ * consulta, y solo se cobra, para el resto. Genérico a propósito: no sabe de organizaciones ni
  * de cuotas, eso es política de quien arma la lista de proveedores.
  *
  * Solo cascada `geocode`, que es donde vive el costo de un lote.
@@ -64,7 +64,7 @@ export function createCascadingProvider(providers: GeoProvider[], opts: CascadeO
       reverse: providers[0].capabilities.reverse,
       // Cacheable solo si TODOS los pasos lo son: una consulta cualquiera puede
       // terminar resuelta por cualquiera de ellos, y guardar un resultado de un
-      // proveedor que no permite almacenarlo (ej. Mapbox temporal) rompería su
+      // proveedor que no permite almacenarlo (como Google) rompería su
       // licencia aunque otro paso de la misma cascada sí lo permita.
       cacheable: providers.every((p) => p.capabilities.cacheable !== false),
     },

@@ -9,6 +9,6 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@bbacigalupo/geo-core": "^0.8.0"
+    "@bbacigalupo/geo-core": "^0.10.0"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@bbacigalupo/address-batch",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Elemento reutilizable de geocodificación masiva: pegar o cargar muchas direcciones, procesarlas con feedback, revisar lo incierto y exportar.",
   "license": "UNLICENSED",
@@ -33,13 +33,13 @@
     "*.css"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node ../../scripts/copy-assets.mjs address-batch styles.css",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json && node ../../scripts/copy-assets.mjs address-batch styles.css",
     "prepack": "npm run build",
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@bbacigalupo/address-input": "^0.8.0",
-    "@bbacigalupo/geo-core": "^0.9.0"
+    "@bbacigalupo/address-input": "^0.9.0",
+    "@bbacigalupo/geo-core": "^0.10.0"
   },
   "peerDependencies": {
     "leaflet": "^1.9.0",

@@ -18,13 +18,13 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "prepack": "npm run build",
     "typecheck": "tsc --noEmit -p .",
     "example": "tsx examples/external-system-demo.mts"
   },
   "dependencies": {
-    "@bbacigalupo/geo-core": "^0.8.0"
+    "@bbacigalupo/geo-core": "^0.10.0"
   },
   "devDependencies": {
     "tsx": "^4"
